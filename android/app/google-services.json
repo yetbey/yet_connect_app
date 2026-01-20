@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "1009522679920",
+    "project_id": "yet-x-app",
+    "storage_bucket": "yet-x-app.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1009522679920:android:5a4478635c3315c00c54b5",
+        "android_client_info": {
+          "package_name": "com.yetcoltd.yet_connect_app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1009522679920-ao1kt70r7jo1m842fcg0m2qtdr2o342d.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.yetcoltd.yet_connect_app",
+            "certificate_hash": "88fdbdd033e821318d5859f444f039fe43fde86e"
+          }
+        },
+        {
+          "client_id": "1009522679920-hmc9itu5badt05gm97fiqne527ir7b96.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.yetcoltd.yet_connect_app",
+            "certificate_hash": "6eb67af952c1599794498c6bb44946326fbdab05"
+          }
+        },
+        {
+          "client_id": "1009522679920-e0stf8l6qmbg79ldhro7jun1fee5bgqs.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDMZPx0dm7UW6k_2Ofg_zL2avVAn4ly0yU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1009522679920-e0stf8l6qmbg79ldhro7jun1fee5bgqs.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

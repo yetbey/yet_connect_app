@@ -1,0 +1,9 @@
+create table public.tag_follows (
+  user_id uuid not null,
+  tag_name text not null,
+  created_at timestamp with time zone not null default timezone ('utc'::text, now()),
+  constraint tag_follows_pkey primary key (user_id, tag_name),
+  constraint tag_follows_user_id_fkey foreign KEY (user_id) references profiles (id) on delete CASCADE
+) TABLESPACE pg_default;
+
+create index IF not exists idx_tag_follows_user_id on public.tag_follows using btree (user_id) TABLESPACE pg_default;

@@ -1,0 +1,39 @@
+
+DECLARE
+  v_is_liked boolean;
+  v_like_count integer;
+BEGIN
+  -- Mevcut beğeni durumunu kontrol et
+  SELECT EXISTS(
+    SELECT 1 FROM post_likes
+    WHERE post_id = p_post_id AND user_id = p_user_id
+  ) INTO v_is_liked;
+
+  IF v_is_liked THEN
+    -- Unlike: Beğeniyi kaldır
+    DELETE FROM post_likes
+    WHERE post_id = p_post_id AND user_id = p_user_id;
+
+    -- Bildirimi sil (opsiyonel)
+    DELETE FROM notifications
+    WHERE type = 'like'
+      AND post_id = p_post_id
+      AND sender_id = p_user_id;
+  ELSE
+    -- Like: Beğeni ekle (conflict durumunda zaten var demektir, ignore et)
+    INSERT INTO post_likes (post_id, user_id)
+    VALUES (p_post_id, p_user_id)
+    ON CONFLICT (user_id, post_id) DO NOTHING;
+  END IF;
+
+  -- Güncel like sayısını getir
+  SELECT COUNT(*)::integer INTO v_like_count
+  FROM post_likes
+  WHERE post_id = p_post_id;
+
+  -- Sonucu dön
+  RETURN jsonb_build_object(
+    'is_liked', NOT v_is_liked,
+    'like_count', v_like_count
+  );
+END;

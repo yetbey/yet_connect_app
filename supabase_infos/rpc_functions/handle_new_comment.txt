@@ -1,0 +1,16 @@
+
+begin
+  if new.user_id = (select user_id from posts where id = new.post_id) then
+    return new;
+  end if;
+
+  insert into public.notifications (type, sender_id, receiver_id, post_id, message)
+  values (
+    'comment',
+    new.user_id,
+    (select user_id from posts where id = new.post_id),
+    new.post_id,
+    'gönderine yorum yaptı: ' || substring(new.content from 1 for 20)
+  );
+  return new;
+end;

@@ -1,0 +1,14 @@
+create table public.follows (
+  follower_id uuid not null,
+  following_id uuid not null,
+  created_at timestamp with time zone not null default timezone ('utc'::text, now()),
+  constraint follows_pkey primary key (follower_id, following_id),
+  constraint follows_follower_id_fkey foreign KEY (follower_id) references profiles (id),
+  constraint follows_following_id_fkey foreign KEY (following_id) references profiles (id)
+) TABLESPACE pg_default;
+
+create index IF not exists idx_follows_follower_following on public.follows using btree (follower_id, following_id) TABLESPACE pg_default;
+
+create trigger on_new_follow
+after INSERT on follows for EACH row
+execute FUNCTION handle_new_follow ();

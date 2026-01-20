@@ -1,0 +1,8 @@
+
+BEGIN
+  INSERT INTO tags (name, post_count, created_at)
+  VALUES (tag_name, 1, NOW())
+  ON CONFLICT (name) 
+  DO UPDATE SET 
+    post_count = tags.post_count + 1;
+END;

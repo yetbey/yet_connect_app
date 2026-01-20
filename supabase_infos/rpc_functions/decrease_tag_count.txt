@@ -1,0 +1,9 @@
+
+BEGIN
+  UPDATE tags 
+  SET post_count = GREATEST(post_count - 1, 0)
+  WHERE name = tag_name;
+  
+  DELETE FROM tags 
+  WHERE name = tag_name AND post_count = 0;
+END;

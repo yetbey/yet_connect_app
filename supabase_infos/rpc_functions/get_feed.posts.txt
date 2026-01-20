@@ -1,0 +1,49 @@
+
+BEGIN
+  RETURN QUERY
+  WITH post_stats AS (
+    -- Like ve comment sayılarını tek sorguda topla
+    SELECT
+      p.id,
+      COALESCE(COUNT(DISTINCT pl.user_id), 0) as likes,
+      COALESCE(COUNT(DISTINCT c.id), 0) as comments,
+      BOOL_OR(pl.user_id = p_user_id) as is_liked
+    FROM posts p
+    LEFT JOIN post_likes pl ON pl.post_id = p.id
+    LEFT JOIN comments c ON c.post_id = p.id
+    WHERE
+      p.video_url IS NULL -- Sadece resim/metin postlar
+      AND (
+        NOT p_only_following
+        OR p.user_id IN (
+          SELECT following_id FROM follows WHERE follower_id = p_user_id
+          UNION ALL
+          SELECT p_user_id -- Kendi postlarını da göster
+        )
+      )
+    GROUP BY p.id
+    ORDER BY p.created_at DESC
+    OFFSET p_start_index
+    LIMIT (p_end_index - p_start_index + 1)
+  )
+  SELECT
+    p.id,
+    p.caption,
+    p.image_url,
+    p.video_url,
+    p.user_id,
+    p.created_at,
+    p.alignment_x,
+    p.alignment_y,
+    p.tags,
+    prof.username,
+    prof.full_name,
+    prof.profile_image_url,
+    ps.likes::bigint as like_count,
+    ps.comments::bigint as comment_count,
+    ps.is_liked as is_liked_by_user
+  FROM posts p
+  INNER JOIN post_stats ps ON ps.id = p.id
+  INNER JOIN profiles prof ON prof.id = p.user_id
+  ORDER BY p.created_at DESC;
+END;

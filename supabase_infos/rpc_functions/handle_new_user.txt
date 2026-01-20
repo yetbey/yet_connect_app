@@ -1,0 +1,12 @@
+
+begin
+  insert into public.profiles (id, full_name, username, profile_image_url, phone_number)
+  values (
+    new.id, 
+    new.raw_user_meta_data->>'full_name', 
+    new.raw_user_meta_data->>'username',
+    new.raw_user_meta_data->>'avatar_url',
+    new.raw_user_meta_data->>'phone_number' -- Telefon numarasını buradan al
+  );
+  return new;
+end;

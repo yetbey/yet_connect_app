@@ -1,0 +1,14 @@
+create table public.post_likes (
+  user_id uuid not null,
+  post_id bigint not null,
+  created_at timestamp with time zone not null default timezone ('utc'::text, now()),
+  constraint post_likes_pkey primary key (user_id, post_id),
+  constraint post_likes_post_id_fkey foreign KEY (post_id) references posts (id) on delete CASCADE,
+  constraint post_likes_user_id_fkey foreign KEY (user_id) references profiles (id)
+) TABLESPACE pg_default;
+
+create index IF not exists idx_post_likes_post_id on public.post_likes using btree (post_id) TABLESPACE pg_default;
+
+create trigger on_new_like
+after INSERT on post_likes for EACH row
+execute FUNCTION handle_new_like ();

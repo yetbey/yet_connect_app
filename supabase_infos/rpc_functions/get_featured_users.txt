@@ -1,0 +1,17 @@
+
+BEGIN
+  RETURN QUERY
+  SELECT 
+    p.id,
+    p.username,
+    p.full_name,
+    p.bio,
+    p.profile_image_url,
+    p.created_at,
+    COUNT(f.follower_id) AS follower_count
+  FROM profiles p
+  LEFT JOIN follows f ON f.following_id = p.id
+  GROUP BY p.id
+  ORDER BY follower_count DESC, p.created_at DESC
+  LIMIT limit_count;
+END;

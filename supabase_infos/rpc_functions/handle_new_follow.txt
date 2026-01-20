@@ -1,0 +1,11 @@
+
+begin
+  insert into public.notifications (type, sender_id, receiver_id, message)
+  values (
+    'follow',
+    new.follower_id,
+    new.following_id,
+    'seni takip etmeye başladı.'
+  );
+  return new;
+end;

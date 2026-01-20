@@ -1,0 +1,6 @@
+
+begin
+  -- Fonksiyonu çağıran kişinin ID'sini al ve auth.users tablosundan sil
+  -- CASCADE ayarları sayesinde profili ve diğer verileri de otomatik silinecek
+  delete from auth.users where id = auth.uid();
+end;

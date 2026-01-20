@@ -1,0 +1,19 @@
+include: package:flutter_lints/flutter.yaml
+
+linter:
+  rules:
+    # Performans
+    - prefer_const_constructors
+    - prefer_const_literals_to_create_immutables
+    - prefer_const_declarations
+
+    # Temiz Kod
+    - unnecessary_new
+    - unnecessary_this
+    - prefer_final_locals
+
+    # Güvenlik Ve Disiplin
+    - avoid_print
+
+    # Stil
+    - prefer_single_quotes

@@ -1,0 +1,31 @@
+
+BEGIN
+  -- Yeni post eklendiğinde
+  IF TG_OP = 'INSERT' THEN
+    IF NEW.tags IS NOT NULL AND array_length(NEW.tags, 1) > 0 THEN
+      INSERT INTO tags (name, post_count)
+      SELECT unnest(NEW.tags), 1
+      ON CONFLICT (name) DO UPDATE SET post_count = tags.post_count + 1;
+    END IF;
+  -- Post güncellendiğinde
+  ELSIF TG_OP = 'UPDATE' THEN
+    -- Eski tagleri azalt
+    IF OLD.tags IS NOT NULL AND array_length(OLD.tags, 1) > 0 THEN
+      UPDATE tags SET post_count = post_count - 1
+      WHERE name = ANY(OLD.tags);
+    END IF;
+    -- Yeni tagleri artır
+    IF NEW.tags IS NOT NULL AND array_length(NEW.tags, 1) > 0 THEN
+      INSERT INTO tags (name, post_count)
+      SELECT unnest(NEW.tags), 1
+      ON CONFLICT (name) DO UPDATE SET post_count = tags.post_count + 1;
+    END IF;
+  -- Post silindiğinde
+  ELSIF TG_OP = 'DELETE' THEN
+    IF OLD.tags IS NOT NULL AND array_length(OLD.tags, 1) > 0 THEN
+      UPDATE tags SET post_count = post_count - 1
+      WHERE name = ANY(OLD.tags);
+    END IF;
+  END IF;
+  RETURN NEW;
+END;

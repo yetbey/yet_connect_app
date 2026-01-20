@@ -1,0 +1,28 @@
+
+BEGIN
+  RETURN QUERY
+  SELECT
+    p.id,
+    p.caption,
+    p.image_url,
+    p.video_url,
+    p.user_id,
+    p.created_at,
+    p.alignment_x,
+    p.alignment_y,
+    p.tags,
+    prof.username,
+    prof.full_name,
+    prof.profile_image_url,
+    COALESCE(COUNT(DISTINCT pl.user_id), 0)::bigint as like_count,
+    COALESCE(COUNT(DISTINCT c.id), 0)::bigint as comment_count,
+    BOOL_OR(pl.user_id = p_current_user_id) as is_liked_by_user
+  FROM posts p
+  INNER JOIN profiles prof ON prof.id = p.user_id
+  LEFT JOIN post_likes pl ON pl.post_id = p.id
+  LEFT JOIN comments c ON c.post_id = p.id
+  WHERE p.user_id = p_target_user_id
+  GROUP BY p.id, prof.username, prof.full_name, prof.profile_image_url
+  ORDER BY p.created_at DESC
+  LIMIT p_limit;
+END;
