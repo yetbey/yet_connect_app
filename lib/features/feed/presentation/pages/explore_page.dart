@@ -383,10 +383,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                   ),
                   flexibleSpace: LayoutBuilder(
                     builder: (context, constraints) {
-                      final expandRatio =
-                          (constraints.maxHeight - kToolbarHeight) /
-                              (150 - kToolbarHeight);
-                      final isCollapsed = expandRatio < 0.3;
+                      final expandRatio = (constraints.maxHeight - kToolbarHeight) / (150 - kToolbarHeight);
 
                       return FlexibleSpaceBar(
                         titlePadding: EdgeInsets.zero,
@@ -395,9 +392,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                             color: theme.colorScheme.surface,
                             border: Border(
                               bottom: BorderSide(
-                                color: theme.dividerColor.withValues(
-                                  alpha: 0.08,
-                                ),
+                                color: theme.dividerColor.withValues(alpha: 0.08),
                                 width: 1,
                               ),
                             ),
@@ -408,30 +403,14 @@ class _HomePageState extends ConsumerState<HomePage> {
                             children: [
                               // Top Bar
                               Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 16,
-                                  vertical: 8,
-                                ),
+                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                                 child: Row(
                                   children: [
                                     Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 14,
-                                        vertical: 8,
-                                      ),
+                                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                                       decoration: BoxDecoration(
-                                        color: theme.primaryColor
-                                            .withValues(alpha: 0.12),
-                                        borderRadius:
-                                        BorderRadius.circular(12),
-                                        boxShadow: [
-                                          BoxShadow(
-                                            color:
-                                            theme.colorScheme.surface,
-                                            blurRadius: 8,
-                                            offset: const Offset(0, 2),
-                                          ),
-                                        ],
+                                        color: theme.primaryColor.withValues(alpha: 0.12),
+                                        borderRadius: BorderRadius.circular(12),
                                       ),
                                       child: Text(
                                         LocaleKeys.navigation_feed.tr(),
@@ -445,52 +424,31 @@ class _HomePageState extends ConsumerState<HomePage> {
                                     ),
                                     const Spacer(),
                                     IconButton(
-                                      onPressed: () =>
-                                          NavigationService.toNamed(
-                                            AppRoutes.createPost,
-                                          ),
-                                      visualDensity:
-                                      VisualDensity.compact,
+                                      onPressed: () => NavigationService.toNamed(AppRoutes.createPost),
+                                      visualDensity: VisualDensity.compact,
                                       icon: Container(
                                         padding: const EdgeInsets.all(8),
                                         decoration: BoxDecoration(
-                                          color: theme.primaryColor
-                                              .withValues(alpha: 0.12),
-                                          borderRadius:
-                                          BorderRadius.circular(10),
+                                          color: theme.primaryColor.withValues(alpha: 0.12),
+                                          borderRadius: BorderRadius.circular(10),
                                         ),
-                                        child: Icon(
-                                          Icons.add_rounded,
-                                          color: theme.primaryColor,
-                                          size: 22,
-                                        ),
+                                        child: Icon(Icons.add_rounded, color: theme.primaryColor, size: 22),
                                       ),
                                     ),
                                     const SizedBox(width: 4),
                                     IconButton(
-                                      onPressed: () =>
-                                          NavigationService.push(
-                                            const NotificationsPage(
-                                              userId: '',
-                                            ),
-                                            type: PageTransitionType
-                                                .rightToLeft,
-                                          ),
-                                      visualDensity:
-                                      VisualDensity.compact,
+                                      onPressed: () => NavigationService.push(
+                                        const NotificationsPage(userId: ''),
+                                        type: PageTransitionType.rightToLeft,
+                                      ),
+                                      visualDensity: VisualDensity.compact,
                                       icon: Container(
                                         padding: const EdgeInsets.all(8),
                                         decoration: BoxDecoration(
-                                          color: theme.primaryColor
-                                              .withValues(alpha: 0.12),
-                                          borderRadius:
-                                          BorderRadius.circular(10),
+                                          color: theme.primaryColor.withValues(alpha: 0.12),
+                                          borderRadius: BorderRadius.circular(10),
                                         ),
-                                        child: Icon(
-                                          Icons.notifications_outlined,
-                                          color: theme.primaryColor,
-                                          size: 22,
-                                        ),
+                                        child: Icon(Icons.notifications_outlined, color: theme.primaryColor, size: 22),
                                       ),
                                     ),
                                   ],
@@ -498,63 +456,26 @@ class _HomePageState extends ConsumerState<HomePage> {
                               ),
                               const SizedBox(height: 12),
 
-                              // ✅ FIX: Opacity ile fade-out efekti
-                              AnimatedOpacity(
-                                opacity: expandRatio.clamp(0.0, 1.0),
-                                duration: const Duration(milliseconds: 200),
-                                child: _ModernCategoryPills(
+                              // ✅ FIX: Pills bar kaybolsun ama yenisi çıkmasın
+                              if (expandRatio > 0.3)
+                                _ModernCategoryPills(
                                   categories: _dynamicCategories,
                                   selectedIndex: _selectedIndex,
                                   onCategorySelected: _onCategorySelected,
                                 ),
-                              ),
+
                               const SizedBox(height: 12),
                             ],
                           ),
                         ),
 
-                        // ✅ FIX: Collapsed durumda gösterilen başlık
-                        title: isCollapsed
-                            ? Padding(
-                          padding: const EdgeInsets.only(
-                            left: 16,
-                            bottom: 12,
-                          ),
-                          child: Row(
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 12,
-                                  vertical: 6,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: theme.primaryColor
-                                      .withValues(alpha: 0.15),
-                                  borderRadius:
-                                  BorderRadius.circular(10),
-                                  border: Border.all(
-                                    color: theme.primaryColor
-                                        .withValues(alpha: 0.3),
-                                    width: 1.5,
-                                  ),
-                                ),
-                                child: Text(
-                                  _dynamicCategories[_selectedIndex],
-                                  style: TextStyle(
-                                    color: theme.primaryColor,
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.w700,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        )
-                            : null,
+                        // ✅ FIX: title null - Hiçbir şey gösterme!
+                        title: null,
                       );
                     },
                   ),
                 ),
+
 
                 const SliverToBoxAdapter(
                   child: StoryBar(),
