@@ -82,24 +82,30 @@ class AuthRepository {
         // Profilde username var mı kontrol et
         final profile = await _supabase
             .from(profilesTable.tableName)
-            .select('${profilesTable.username}')
+            .select(profilesTable.username)
             .eq(profilesTable.id, user.id)
             .maybeSingle();
 
-        // Username yoksa oluştur
-        if (profile == null || profile[profilesTable.username] == null) {
-          String username = await _generateUniqueUsername(user);
+        if (profile == null) {
+          final String username = await _generateUniqueUsername(user);
 
-          // Profili güncelle
-          await _supabase
-              .from(profilesTable.tableName)
-              .update({
+          await _supabase.from(profilesTable.tableName).insert({
+            profilesTable.id: user.id,
             profilesTable.username: username,
             profilesTable.fullName: user.userMetadata?['full_name'] ?? user.email?.split('@')[0],
-          })
-              .eq(profilesTable.id, user.id);
+            profilesTable.profileImageUrl: user.userMetadata?['profile_image_url'] ?? user.userMetadata?['avatar_url'],
+          });
+          LogService.i('Profile created for Google user: $username');
+        } else if (profile[profilesTable.username] == null) {
+          // Profile var ama username yok
+          final String username = await _generateUniqueUsername(user);
 
-          LogService.i('Username created for Google user: $username');
+          await _supabase.from(profilesTable.tableName).update({
+            profilesTable.username: username,
+            profilesTable.fullName: user.userMetadata?['full_name'] ?? user.email?.split('@')[0],
+          }).eq(profilesTable.id, user.id);
+          
+          LogService.i('Username updated for Google user: $username');
         }
       }
 

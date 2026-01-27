@@ -2,6 +2,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:yet_x_app/core/utils/error_handler.dart';
 import 'package:yet_x_app/core/utils/logger_service.dart';
+import 'package:yet_x_app/features/gamification/data/services/mission_service.dart';
+import 'package:yet_x_app/features/gamification/data/services/points_service.dart';
 
 // ============================================================================
 // FEELS STATE
@@ -63,6 +65,8 @@ class FeelsState {
 // ============================================================================
 class FeelsNotifier extends Notifier<FeelsState> {
   final _supabase = Supabase.instance.client;
+  final _pointsService = PointsService();
+  final _missionService = MissionService();
 
   @override
   FeelsState build() {
@@ -168,61 +172,27 @@ class FeelsNotifier extends Notifier<FeelsState> {
       final userId = _supabase.auth.currentUser?.id;
       if (userId == null) return;
 
-      final today = DateTime.now();
-      final todayStart = DateTime(today.year, today.month, today.day);
+      // Yeni mission service'den görevleri al
+      final missions = await _missionService.getMissions(
+        type: 'daily',
+        userId: userId,
+      );
 
-      // Bugünkü aktiviteleri çek
-      final posts = await _supabase
-          .from('posts')
-          .select('id')
-          .eq('user_id', userId)
-          .gte('created_at', todayStart.toIso8601String());
+      // Görevleri state formatına çevir
+      final missionsList = missions.map((mission) {
+        return {
+          'title': mission.title,
+          'progress': mission.progress,
+          'current': mission.currentProgress,
+          'target': mission.target,
+          'reward': '${mission.rewardPoints} XP',
+          'icon': mission.icon ?? 'check_circle',
+          'color': mission.colorValue.value,
+        };
+      }).toList();
 
-      final likes = await _supabase
-          .from('post_likes')
-          .select('post_id')
-          .eq('user_id', userId)
-          .gte('created_at', todayStart.toIso8601String());
-
-      final comments = await _supabase
-          .from('comments')
-          .select('id')
-          .eq('user_id', userId)
-          .gte('created_at', todayStart.toIso8601String());
-
-      // Görevleri oluştur
-      final missions = [
-        {
-          'title': 'İlk Gönderi',
-          'progress': (posts.length / 1).clamp(0.0, 1.0),
-          'current': posts.length,
-          'target': 1,
-          'reward': '10 XP',
-          'icon': 'edit',
-          'color': 0xFF667eea,
-        },
-        {
-          'title': '5 Beğeni Yap',
-          'progress': (likes.length / 5).clamp(0.0, 1.0),
-          'current': likes.length,
-          'target': 5,
-          'reward': '5 XP',
-          'icon': 'favorite',
-          'color': 0xFFFF6B6B,
-        },
-        {
-          'title': '3 Yorum At',
-          'progress': (comments.length / 3).clamp(0.0, 1.0),
-          'current': comments.length,
-          'target': 3,
-          'reward': '15 XP',
-          'icon': 'comment',
-          'color': 0xFF4FACFE,
-        },
-      ];
-
-      state = state.copyWith(dailyMissions: missions);
-      LogService.i('✅ Günlük görevler yüklendi');
+      state = state.copyWith(dailyMissions: missionsList);
+      LogService.i('✅ Günlük görevler yüklendi (${missions.length})');
     } catch (e) {
       LogService.e('❌ Günlük görev yükleme hatası', e);
     }
@@ -322,6 +292,40 @@ class FeelsNotifier extends Notifier<FeelsState> {
   Future<void> refresh() async {
     await _loadFeelsData();
   }
+
+  // Görev tamamlama ve Puan ekleme
+  Future<void> trackActivity(String activityType) async {
+    final userId = _supabase.auth.currentUser?.id;
+    if (userId == null) return;
+
+    try {
+      // Aktivite tipine göre görev ID'lerini belirle
+      int? missionId;
+
+      if (activityType == 'post') {
+        missionId = 1; // "İlk Gönderi" görevi
+      } else if (activityType == 'like') {
+        missionId = 2; // "5 Beğeni Yap" görevi
+      } else if (activityType == 'comment') {
+        missionId = 3; // "3 Yorum At" görevi
+      }
+
+      if (missionId != null) {
+        // Görev ilerlemesini güncelle
+        await _missionService.updateMissionProgress(
+          userId: userId,
+          missionId: missionId,
+          increment: 1,
+        );
+
+        // Günlük görevleri yeniden yükle
+        await _loadDailyMissions();
+      }
+    } catch (e) {
+      LogService.e('❌ Aktivite takip hatası', e);
+    }
+  }
+
 }
 
 // ============================================================================

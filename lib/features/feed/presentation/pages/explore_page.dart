@@ -356,7 +356,7 @@ class _HomePageState extends ConsumerState<HomePage> {
               ),
               cacheExtent: 1000,
               slivers: [
-                // ✅ FIXED: Modern Collapsible App Bar
+                //  Modern App Bar
                 SliverAppBar(
                   expandedHeight: 150,
                   automaticallyImplyLeading: false,
@@ -403,7 +403,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                             children: [
                               // Top Bar
                               Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                padding: const EdgeInsets.fromLTRB(16, 8, 2, 8),
                                 child: Row(
                                   children: [
                                     Container(
@@ -414,8 +414,8 @@ class _HomePageState extends ConsumerState<HomePage> {
                                       ),
                                       child: Text(
                                         LocaleKeys.navigation_feed.tr(),
-                                        style: const TextStyle(
-                                          color: Colors.white,
+                                        style: TextStyle(
+                                          color: theme.primaryColor,
                                           fontSize: 16,
                                           fontWeight: FontWeight.w700,
                                           letterSpacing: 0.5,

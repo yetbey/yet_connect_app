@@ -33,7 +33,7 @@ class UnifiedActionButton extends StatelessWidget {
       onLongPress: onLongPress,
       borderRadius: BorderRadius.circular(20),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
         decoration: BoxDecoration(
           color: isActive
               ? buttonColor.withValues(alpha: 0.1)

@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'dart:ui';
 import 'package:yet_x_app/core/services/navigation_service.dart';
 import 'package:yet_x_app/features/chat/presentation/providers/chat_provider.dart';
+import 'package:yet_x_app/features/gamification/presentation/providers/points_provider.dart';
 import 'package:yet_x_app/features/profile/presentation/providers/user_provider.dart';
 import 'package:yet_x_app/shared/models/user_model.dart';
 import 'package:yet_x_app/config/routes/app_routes.dart';
@@ -66,6 +67,8 @@ class _ProfileHeaderState extends ConsumerState<ProfileHeader>
     final colorScheme = theme.colorScheme;
     final bioText = widget.user.bio ?? '';
 
+    print('🔍 DEBUG: ProfileHeader build - User ID: ${widget.user.id}');
+
     return Container(
       decoration: BoxDecoration(
         gradient: LinearGradient(
@@ -126,47 +129,137 @@ class _ProfileHeaderState extends ConsumerState<ProfileHeader>
                   opacity: _fadeAnimation,
                   child: Row(
                     children: [
-                      _buildModernAvatar(context, colorScheme),
+                      Stack(
+                        clipBehavior: Clip.none,
+                        children: [
+                          _buildModernAvatar(context, colorScheme),
+
+                          // ✅ Rütbe badge
+                          Positioned(
+                            right: -4,
+                            bottom: -4,
+                            child: _buildRankBadge(ref, colorScheme),
+                          ),
+                        ],
+                      ),
                       const SizedBox(width: 20),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
-                              widget.user.fullName,
-                              style: theme.textTheme.titleLarge?.copyWith(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 24,
-                                letterSpacing: -0.5,
+                            Padding(
+                              padding: const EdgeInsets.only(left: 20),
+                              child: Text(
+                                widget.user.fullName,
+                                style: theme.textTheme.titleLarge?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 24,
+                                  letterSpacing: -0.5,
+                                ),
                               ),
                             ),
-                            const SizedBox(height: 4),
-                            if (bioText.isNotEmpty)
-                              Text(
-                                bioText,
-                                style: TextStyle(
-                                  fontSize: 15,
-                                  color: colorScheme.onSurface.withOpacity(0.7),
-                                  height: 1.4,
+                            const SizedBox(height: 8),
+
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceAround,
+                              children: [
+                                Column(
+                                  children: [
+                                    Text(
+                                      'Gönderiler',
+                                      style: TextStyle(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w500,
+                                        color: colorScheme.onSurface.withOpacity(0.6),
+                                        letterSpacing: 0.2,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 4,),
+                                    Text(
+                                      widget.postCount.toString(),
+                                      style: TextStyle(
+                                        fontSize: 24,
+                                        fontWeight: FontWeight.bold,
+                                        color: colorScheme.onSurface,
+                                        letterSpacing: -0.5,
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                              ),
+                                Column(
+                                  children: [
+                                    Text(
+                                      'Takipçi',
+                                      style: TextStyle(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w500,
+                                        color: colorScheme.onSurface.withOpacity(0.6),
+                                        letterSpacing: 0.2,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 4,),
+                                    Text(
+                                      widget.user.followersCount.toString(),
+                                      style: TextStyle(
+                                        fontSize: 24,
+                                        fontWeight: FontWeight.bold,
+                                        color: colorScheme.onSurface,
+                                        letterSpacing: -0.5,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                Column(
+                                  children: [
+                                    Text(
+                                      'Takip',
+                                      style: TextStyle(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w500,
+                                        color: colorScheme.onSurface.withOpacity(0.6),
+                                        letterSpacing: 0.2,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 4,),
+                                    Text(
+                                      widget.user.followingCount.toString(),
+                                      style: TextStyle(
+                                        fontSize: 24,
+                                        fontWeight: FontWeight.bold,
+                                        color: colorScheme.onSurface,
+                                        letterSpacing: -0.5,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+
                           ],
                         ),
                       ),
                     ],
                   ),
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: 12),
+
+                _buildRankInfo(ref, colorScheme),
+
+                const SizedBox(height: 8,),
+
+                if (bioText.isNotEmpty)
+                  Text(
+                    bioText,
+                    style: TextStyle(
+                      fontSize: 15,
+                      color: colorScheme.onSurface.withOpacity(0.7),
+                      height: 1.4,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 
-                // Glassmorphic Stats
-                ScaleTransition(
-                  scale: _scaleAnimation,
-                  child: _buildGlassmorphicStats(theme, colorScheme),
-                ),
-                
-                const SizedBox(height: 16),
+                const SizedBox(height: 8),
                 
                 // Modern Action Buttons
                 FadeTransition(
@@ -174,6 +267,106 @@ class _ProfileHeaderState extends ConsumerState<ProfileHeader>
                   child: _buildModernActionButtons(context, ref, colorScheme),
                 ),
               ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRankBadge(WidgetRef ref, ColorScheme colorScheme) {
+    final pointsState = ref.watch(pointsProvider);
+
+    print('🔍 DEBUG Rank Badge - Points: ${pointsState.userPoints?.totalPoints}, Rank: ${pointsState.currentRank?.name}');
+
+    if (pointsState.currentRank == null) {
+      return const SizedBox.shrink();
+    }
+
+    return Container(
+      padding: const EdgeInsets.all(3),
+      decoration: BoxDecoration(
+        color: colorScheme.surface,
+        shape: BoxShape.circle,
+        boxShadow: [
+          BoxShadow(
+            color: pointsState.currentRank!.colorValue.withOpacity(0.5),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Container(
+        width: 32,
+        height: 32,
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              pointsState.currentRank!.colorValue,
+              pointsState.currentRank!.colorValue.withOpacity(0.7),
+            ],
+          ),
+          shape: BoxShape.circle,
+        ),
+        child: Icon(
+          pointsState.currentRank!.iconData,
+          color: Colors.white,
+          size: 18,
+        ),
+      ),
+    );
+  }
+
+// Helper: Rütbe bilgisi
+  Widget _buildRankInfo(WidgetRef ref, ColorScheme colorScheme) {
+    final pointsState = ref.watch(pointsProvider);
+
+    print('🔍 DEBUG Rank Info - Points: ${pointsState.userPoints?.totalPoints}, Rank: ${pointsState.currentRank?.name}');
+
+    if (pointsState.userPoints == null || pointsState.currentRank == null) {
+      return const SizedBox.shrink();
+    }
+
+    return Container(
+      margin: const EdgeInsets.only(top: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            pointsState.currentRank!.colorValue.withOpacity(0.2),
+            pointsState.currentRank!.colorValue.withOpacity(0.1),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: pointsState.currentRank!.colorValue.withOpacity(0.3),
+          width: 1,
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            pointsState.currentRank!.iconData,
+            color: pointsState.currentRank!.colorValue,
+            size: 14,
+          ),
+          const SizedBox(width: 6),
+          Text(
+            pointsState.currentRank!.displayName,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
+              color: pointsState.currentRank!.colorValue,
+            ),
+          ),
+          const SizedBox(width: 6),
+          Text(
+            '${pointsState.userPoints!.totalPoints} XP',
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+              color: colorScheme.onSurface.withOpacity(0.6),
             ),
           ),
         ],

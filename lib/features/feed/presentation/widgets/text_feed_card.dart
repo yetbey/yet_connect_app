@@ -113,7 +113,7 @@ class _TextFeedCardState extends ConsumerState<TextFeedCard>
 
   Widget _buildHeader(BuildContext context, bool isDark, ThemeData theme) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
       child: Row(
         children: [
           GestureDetector(
@@ -183,7 +183,7 @@ class _TextFeedCardState extends ConsumerState<TextFeedCard>
 
   Widget _buildContent(BuildContext context, bool isDark, ThemeData theme) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
+      padding: const EdgeInsets.fromLTRB(8, 0, 8, 0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -275,7 +275,7 @@ class _TextFeedCardState extends ConsumerState<TextFeedCard>
 
   Widget _buildInteractionInfo(BuildContext context, bool isDark) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+      padding: const EdgeInsets.fromLTRB(12, 8, 16, 0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -333,7 +333,7 @@ class _TextFeedCardState extends ConsumerState<TextFeedCard>
 
   Widget _buildActionsBar(BuildContext context, bool isDark) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 8, 12, 0),
+      padding: const EdgeInsets.fromLTRB(8, 8, 12, 0),
       child: Row(
         children: [
           ScaleTransition(

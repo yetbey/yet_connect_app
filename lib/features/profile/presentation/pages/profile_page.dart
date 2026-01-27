@@ -17,6 +17,8 @@ import 'package:yet_x_app/features/feed/presentation/providers/post_provider.dar
 import 'package:yet_x_app/features/profile/presentation/providers/user_provider.dart';
 import 'package:yet_x_app/config/routes/app_routes.dart';
 
+import '../../../gamification/presentation/providers/points_provider.dart';
+
 class ProfilePage extends ConsumerStatefulWidget {
   final String? userId;
 

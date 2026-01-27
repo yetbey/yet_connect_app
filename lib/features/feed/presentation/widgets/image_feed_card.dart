@@ -135,7 +135,7 @@ class _ImageFeedCardState extends ConsumerState<ImageFeedCard>
 
   Widget _buildHeader(BuildContext context, bool isDark, ThemeData theme) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
       child: Row(
         children: [
           GestureDetector(
@@ -282,7 +282,7 @@ class _ImageFeedCardState extends ConsumerState<ImageFeedCard>
     ThemeData theme,
   ) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+      padding: const EdgeInsets.fromLTRB(8, 12, 16, 0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -327,7 +327,7 @@ class _ImageFeedCardState extends ConsumerState<ImageFeedCard>
 
   Widget _buildInteractionInfo(BuildContext context, bool isDark) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 4, 16, 0),
+      padding: const EdgeInsets.fromLTRB(8, 8, 16, 0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -385,7 +385,7 @@ class _ImageFeedCardState extends ConsumerState<ImageFeedCard>
 
   Widget _buildActionsBar(BuildContext context, bool isDark) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 8, 12, 2),
+      padding: const EdgeInsets.fromLTRB(8  , 8, 12, 2),
       child: Row(
         children: [
           ScaleTransition(

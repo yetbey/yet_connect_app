@@ -377,9 +377,9 @@ class _DetailedPostPageState extends ConsumerState<DetailedPostPage>
         child: Text(
           widget.post.caption!,
           maxLines: _captionMaxLines,
-          style: AppTextStyles.postCaption.copyWith(
+          style: const TextStyle(
             fontSize: 16,
-            height: 1.5, // ✅ Satır yüksekliği
+            height: 1.5,
           ),
         ),
       ),
@@ -391,7 +391,7 @@ class _DetailedPostPageState extends ConsumerState<DetailedPostPage>
       children: [
         Text(
           LocaleKeys.feed_comments.tr(),
-          style: AppTextStyles.headline3.copyWith(fontWeight: FontWeight.bold),
+          style: const TextStyle(fontWeight: FontWeight.w600),
         ),
         const SizedBox(width: 8),
         if (!commentState.isLoading)
@@ -499,10 +499,9 @@ class _DetailedPostPageState extends ConsumerState<DetailedPostPage>
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: AppColors.cardColor.withValues(alpha: 0.3),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: AppColors.divider.withValues(alpha: 0.3),
+          color: AppColors.lightDivider,
           width: 1,
         ),
       ),
@@ -550,25 +549,16 @@ class _DetailedPostPageState extends ConsumerState<DetailedPostPage>
                   children: [
                     Text(
                       '@${comment.userName}',
-                      style: AppTextStyles.postUsername.copyWith(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                      ),
                     ),
                     const SizedBox(width: 8),
                     Text(
                       _formatTimeAgo(comment.createdAt),
-                      style: AppTextStyles.postTimestamp,
                     ),
                   ],
                 ),
                 const SizedBox(height: 4),
                 Text(
                   comment.content,
-                  style: AppTextStyles.bodyMedium.copyWith(
-                    fontSize: 15,
-                    height: 1.4,
-                  ),
                 ),
               ],
             ),
@@ -626,7 +616,7 @@ class _DetailedPostPageState extends ConsumerState<DetailedPostPage>
       ),
       padding: EdgeInsets.fromLTRB(16, 12, 16, 12 + bottomInset),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.end,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Expanded(
             child: Container(
@@ -666,8 +656,7 @@ class _DetailedPostPageState extends ConsumerState<DetailedPostPage>
             ),
           ),
           const SizedBox(width: 8),
-
-          // ✅ Animated send button
+          // Animated send button
           AnimatedScale(
             scale: hasText ? 1.0 : 0.8,
             duration: const Duration(milliseconds: 150),
