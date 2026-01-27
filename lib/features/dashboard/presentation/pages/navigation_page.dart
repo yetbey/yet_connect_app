@@ -14,6 +14,7 @@ import 'package:yet_x_app/features/feed/presentation/pages/search_page.dart';
 import 'package:yet_x_app/features/feels/presentation/pages/feels_page.dart';
 import 'package:yet_x_app/features/profile/presentation/pages/profile_page.dart';
 import 'package:yet_x_app/features/profile/presentation/providers/user_provider.dart';
+import 'package:yet_x_app/features/reels/presentation/pages/reels_page.dart';
 
 class NavigationPage extends ConsumerStatefulWidget {
   const NavigationPage({super.key});
@@ -80,7 +81,7 @@ class _NavigationPageState extends ConsumerState<NavigationPage>
         page = const HomePage();
         break;
       case 1:
-        page = const FeelsPage();
+        page = const ReelsPage();
         break;
       case 2:
         page = const ChatListPage();
