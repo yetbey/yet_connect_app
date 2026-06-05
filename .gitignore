@@ -81,4 +81,4 @@ lib/generated_plugin_registrant.dart
 
 # GİZLİ DOSYALAR (Kesinlikle ekleyin)
 .env
-*.env
+*.envenv

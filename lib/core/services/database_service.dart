@@ -1,10 +1,11 @@
 import 'dart:convert';
-
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:yet_x_app/shared/models/user_model.dart';
 import 'package:yet_x_app/core/utils/logger_service.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:sqflite_common_ffi_web/sqflite_ffi_web.dart';
 
 class DatabaseService {
   static final DatabaseService _instance = DatabaseService._internal();
@@ -30,18 +31,35 @@ class DatabaseService {
 
   Future<Database> _initDB() async {
     try {
-      final dbPath = await getDatabasesPath();
-      final path = join(dbPath, _databaseName);
-      LogService.i('📂 Veritabanı yolu: $path');
-      return await openDatabase(
-        path,
-        version: _databaseVersion,
-        onCreate: _onCreate,
-        onUpgrade: _onUpgrade,
-        onOpen: (db) {
-          LogService.i('✅ Veritabanı açıldı');
-        },
-      );
+      if (kIsWeb) {
+        // Web platformu için özel veritabanı başlatıcısı
+        databaseFactory = databaseFactoryFfiWeb;
+        final path = _databaseName; // Web tarafında path yerine sadece isim kullanılır
+        LogService.i('🌐 Web veritabanı yolu: $path');
+        return await openDatabase(
+          path,
+          version: _databaseVersion,
+          onCreate: _onCreate,
+          onUpgrade: _onUpgrade,
+          onOpen: (db) {
+            LogService.i('✅ Web Veritabanı açıldı');
+          },
+        );
+      } else {
+        // Mevcut Mobil (Android/iOS) başlatıcısı
+        final dbPath = await getDatabasesPath();
+        final path = join(dbPath, _databaseName);
+        LogService.i('📂 Veritabanı yolu: $path');
+        return await openDatabase(
+          path,
+          version: _databaseVersion,
+          onCreate: _onCreate,
+          onUpgrade: _onUpgrade,
+          onOpen: (db) {
+            LogService.i('✅ Veritabanı açıldı');
+          },
+        );
+      }
     } catch (e) {
       LogService.e('❌ Veritabanı başlatma hatası', e);
       rethrow;
