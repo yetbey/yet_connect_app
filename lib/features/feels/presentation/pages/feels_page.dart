@@ -13,6 +13,7 @@ import 'package:yet_x_app/features/profile/presentation/providers/user_provider.
 import 'package:yet_x_app/shared/models/user_model.dart';
 import 'package:yet_x_app/features/feels/presentation/providers/feels_provider.dart';
 import 'package:yet_x_app/core/utils/utils.dart';
+import 'package:animated_text_kit/animated_text_kit.dart';
 
 class FeelsPage extends ConsumerStatefulWidget {
   const FeelsPage({super.key});
@@ -482,6 +483,8 @@ class _FeelsPageState extends ConsumerState<FeelsPage>
   Widget _buildMoodTracker(BuildContext context) {
     final feelsState = ref.watch(feelsProvider);
     final selectedMood = feelsState.selectedMood;
+    final aiMessage = feelsState.aiMessage; // YENİ
+    final isAiLoading = feelsState.isAiLoading; // YENİ
 
     final moods = [
       {'emoji': '😊', 'label': 'Mutlu', 'color': const Color(0xFF4FACFE)},
@@ -575,6 +578,77 @@ class _FeelsPageState extends ConsumerState<FeelsPage>
             },
           ),
         ),
+
+        // YENİ: YAPAY ZEKA MESAJ KUTUSU
+        if (isAiLoading || aiMessage != null)
+          AnimatedContainer(
+            duration: const Duration(milliseconds: 500),
+            margin: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  AppColors.primary.withValues(alpha: 0.15),
+                  AppColors.secondary.withValues(alpha: 0.05),
+                ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: AppColors.primary.withValues(alpha: 0.3),
+              ),
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Icon(
+                  Icons.auto_awesome,
+                  color: AppColors.primary,
+                  size: 24,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: isAiLoading
+                      ? Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'YET AI düşünüyor...',
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                          fontStyle: FontStyle.italic,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      LinearProgressIndicator(
+                        backgroundColor: AppColors.primary.withValues(alpha: 0.1),
+                        color: AppColors.primary,
+                        minHeight: 2,
+                      ),
+                    ],
+                  )
+                      : DefaultTextStyle(
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.onSurface,
+                      fontSize: 14,
+                      height: 1.4,
+                    ),
+                    child: AnimatedTextKit(
+                      animatedTexts: [
+                        TypewriterAnimatedText(
+                          aiMessage ?? '',
+                          speed: const Duration(milliseconds: 50),
+                        ),
+                      ],
+                      totalRepeatCount: 1,
+                      displayFullTextOnTap: true,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
       ],
     );
   }

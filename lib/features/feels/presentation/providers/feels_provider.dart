@@ -4,6 +4,8 @@ import 'package:yet_x_app/core/utils/error_handler.dart';
 import 'package:yet_x_app/core/utils/logger_service.dart';
 import 'package:yet_x_app/features/gamification/data/services/mission_service.dart';
 import 'package:yet_x_app/features/gamification/data/services/points_service.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:google_generative_ai/google_generative_ai.dart';
 
 // ============================================================================
 // FEELS STATE
@@ -11,6 +13,8 @@ import 'package:yet_x_app/features/gamification/data/services/points_service.dar
 class FeelsState {
   final int currentStreak;
   final String? selectedMood;
+  final String? aiMessage;
+  final bool isAiLoading;
   final List<Map<String, dynamic>> dailyMissions;
   final int weeklyPoints;
   final int weeklyPointsTarget;
@@ -23,6 +27,8 @@ class FeelsState {
   const FeelsState({
     this.currentStreak = 0,
     this.selectedMood,
+    this.aiMessage,
+    this.isAiLoading = false,
     this.dailyMissions = const [],
     this.weeklyPoints = 0,
     this.weeklyPointsTarget = 150,
@@ -36,6 +42,8 @@ class FeelsState {
   FeelsState copyWith({
     int? currentStreak,
     String? selectedMood,
+    String? aiMessage,
+    bool? isAiLoading,
     List<Map<String, dynamic>>? dailyMissions,
     int? weeklyPoints,
     int? weeklyPointsTarget,
@@ -48,6 +56,8 @@ class FeelsState {
     return FeelsState(
       currentStreak: currentStreak ?? this.currentStreak,
       selectedMood: selectedMood ?? this.selectedMood,
+      aiMessage: aiMessage ?? this.aiMessage,
+      isAiLoading: isAiLoading ?? this.isAiLoading,
       dailyMissions: dailyMissions ?? this.dailyMissions,
       weeklyPoints: weeklyPoints ?? this.weeklyPoints,
       weeklyPointsTarget: weeklyPointsTarget ?? this.weeklyPointsTarget,
@@ -74,7 +84,6 @@ class FeelsNotifier extends Notifier<FeelsState> {
     return const FeelsState();
   }
 
-  /// Tüm Feels verilerini yükle
   Future<void> _loadFeelsData() async {
     state = state.copyWith(isLoading: true);
 
@@ -101,7 +110,6 @@ class FeelsNotifier extends Notifier<FeelsState> {
     }
   }
 
-  /// Kullanıcının günlük giriş serisini hesapla
   Future<void> _loadStreak() async {
     try {
       final userId = _supabase.auth.currentUser?.id;
@@ -113,9 +121,9 @@ class FeelsNotifier extends Notifier<FeelsState> {
           .select('created_at')
           .eq('user_id', userId)
           .gte(
-        'created_at',
-        DateTime.now().subtract(const Duration(days: 30)).toIso8601String(),
-      )
+            'created_at',
+            DateTime.now().subtract(const Duration(days: 30)).toIso8601String(),
+          )
           .order('created_at', ascending: false);
 
       if (response.isEmpty) {
@@ -166,7 +174,6 @@ class FeelsNotifier extends Notifier<FeelsState> {
     }
   }
 
-  /// Günlük görevleri yükle
   Future<void> _loadDailyMissions() async {
     try {
       final userId = _supabase.auth.currentUser?.id;
@@ -198,14 +205,19 @@ class FeelsNotifier extends Notifier<FeelsState> {
     }
   }
 
-  /// Haftalık puan ilerlemesini yükle
   Future<void> _loadWeeklyPoints() async {
     try {
       final userId = _supabase.auth.currentUser?.id;
       if (userId == null) return;
 
-      final weekStart = DateTime.now().subtract(Duration(days: DateTime.now().weekday - 1));
-      final weekStartDay = DateTime(weekStart.year, weekStart.month, weekStart.day);
+      final weekStart = DateTime.now().subtract(
+        Duration(days: DateTime.now().weekday - 1),
+      );
+      final weekStartDay = DateTime(
+        weekStart.year,
+        weekStart.month,
+        weekStart.day,
+      );
 
       // Bu haftaki aktiviteleri say
       final posts = await _supabase
@@ -227,7 +239,8 @@ class FeelsNotifier extends Notifier<FeelsState> {
           .gte('created_at', weekStartDay.toIso8601String());
 
       // Puan hesapla (Post: 20, Like: 2, Comment: 5)
-      final points = (posts.length * 20) + (likes.length * 2) + (comments.length * 5);
+      final points =
+          (posts.length * 20) + (likes.length * 2) + (comments.length * 5);
 
       state = state.copyWith(weeklyPoints: points);
       LogService.i('✅ Haftalık puan yüklendi: $points');
@@ -236,7 +249,6 @@ class FeelsNotifier extends Notifier<FeelsState> {
     }
   }
 
-  /// Kullanıcı istatistiklerini yükle
   Future<void> _loadUserStats() async {
     try {
       final userId = _supabase.auth.currentUser?.id;
@@ -279,13 +291,55 @@ class FeelsNotifier extends Notifier<FeelsState> {
     }
   }
 
-  /// Mood (ruh hali) seçimini kaydet
   Future<void> selectMood(String mood) async {
-    state = state.copyWith(selectedMood: mood);
+    final userId = _supabase.auth.currentUser?.id;
+    if (userId == null) return;
 
-    // TODO: Supabase'e mood kaydı eklenebilir
-    // Şimdilik sadece local state'te tutalım
-    LogService.i('✅ Mood seçildi: $mood');
+    state = state.copyWith(
+      selectedMood: mood,
+      isAiLoading: true,
+      aiMessage: null,
+    );
+
+    try {
+      await _supabase.from('profiles').update({
+        'current_mood': mood,
+      }).eq('id', userId);
+      LogService.i('✅ Mood Supabase\'e kaydedildi: $mood');
+
+      final apiKey = dotenv.env['GEMINI_API_KEY'];
+      if (apiKey == null || apiKey.isEmpty){
+        throw Exception('Gemini Api Key bulunamadı!');
+      }
+
+      final model = GenerativeModel(model: 'gemini-3.5-flash', apiKey: apiKey);
+      final prompt = '''
+      Sen 'YET Connect' adlı sosyal medya uygulamasının samimi, zeki ve enerji dolu yapay zeka asistanısın. 
+      Kullanıcı şu an "$mood" hissediyor.
+      Görev: Kullanıcının bu ruh haline uygun, ona iyi hissettirecek veya empati kuracak kısa, dostça bir mesaj yaz.
+      Kurallar: 
+      - En fazla 2 cümle olsun.
+      - Çok robotik konuşma, samimi bir arkadaş gibi ol.
+      - Sonuna mutlaka uygun bir emoji ekle.
+      ''';
+
+      final content = [Content.text(prompt)];
+      final response = await model.generateContent(content);
+
+      final aiText = response.text?.trim() ?? "Şu an ne diyeceğimi bilemedim ama yanındayım! 💛";
+
+      state = state.copyWith(
+        isAiLoading: false,
+        aiMessage: aiText,
+      );
+
+    } catch (e) {
+      LogService.e('❌ Mood kaydetme/AI hatası', e);
+      state = state.copyWith(
+        isAiLoading: false,
+        aiMessage: "Şu an bağlantımda bir sorun var ama $mood hissettiğini not aldım! ✨",
+      );
+    }
   }
 
   /// Verileri yenile
@@ -325,7 +379,6 @@ class FeelsNotifier extends Notifier<FeelsState> {
       LogService.e('❌ Aktivite takip hatası', e);
     }
   }
-
 }
 
 // ============================================================================
