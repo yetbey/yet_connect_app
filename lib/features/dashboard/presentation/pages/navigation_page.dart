@@ -1,6 +1,7 @@
 // ============================================================================
 // NAVIGATION PAGE - WITH SWIPE GESTURE
 // ============================================================================
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -163,30 +164,51 @@ class _NavigationPageState extends ConsumerState<NavigationPage>
   // UI BUILDERS
   // ============================================================================
   Widget _buildBottomNavBar(ThemeData theme, bool isNavBarVisible) {
+    final isDark = theme.brightness == Brightness.dark;
+
     return AnimatedBuilder(
       animation: _navBarController,
       builder: (context, child) {
         return Transform.translate(
-          offset: Offset(0, _navBarHeight * (1 - _navBarController.value)),
+          offset: Offset(0, (_navBarHeight + 30) * (1 - _navBarController.value)),
           child: Opacity(opacity: _navBarController.value, child: child),
         );
       },
-      child: Container(
-        height: _navBarHeight,
-        decoration: BoxDecoration(
-          color: theme.bottomAppBarTheme.color ?? theme.colorScheme.surface,
-          boxShadow: [
-            BoxShadow(
-              blurRadius: 20,
-              color: Colors.black.withValues(alpha: 0.1),
-              offset: const Offset(0, -2),
+      child: Padding(
+        padding: const EdgeInsets.only(left: 16, right: 16, bottom: 24),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(30),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+            child: Container(
+              height: 65,
+              decoration: BoxDecoration(
+                color: (theme.bottomAppBarTheme.color ?? theme.colorScheme.surface)
+                    .withValues(alpha: isDark ? 0.65 : 0.75),
+                borderRadius: BorderRadius.circular(30),
+                border: Border.all(
+                  color: isDark
+                      ? Colors.white.withValues(alpha: 0.2)
+                      : Colors.black.withValues(alpha: 0.08),
+                  width: 1,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.1),
+                    blurRadius: 20,
+                    offset: const Offset(0, 10),
+                  ),
+                ],
+              ),
+              child: SafeArea(
+                top: false,
+                bottom: false,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 14.0, vertical: 4),
+                  child: _buildGNav(theme),
+                ),
+              ),
             ),
-          ],
-        ),
-        child: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 14.0, vertical: 4),
-            child: _buildGNav(theme),
           ),
         ),
       ),
@@ -199,16 +221,16 @@ class _NavigationPageState extends ConsumerState<NavigationPage>
       rippleColor: theme.colorScheme.secondary.withValues(alpha: 0.1),
       hoverColor: theme.colorScheme.secondary.withValues(alpha: 0.1),
       haptic: true,
-      tabBorderRadius: 16,
-      tabBackgroundColor: theme.colorScheme.surfaceContainerHighest,
+      tabBorderRadius: 20,
+      tabBackgroundColor: theme.colorScheme.primary.withValues(alpha: 0.15),
       duration: const Duration(milliseconds: 350),
-      gap: 8,
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-      color: theme.iconTheme.color?.withValues(alpha: 0.5),
+      gap: 6,
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      color: theme.iconTheme.color?.withValues(alpha: 0.6),
       activeColor: theme.colorScheme.primary,
-      iconSize: 32,
+      iconSize: 26,
       textStyle: TextStyle(
-        fontSize: 13,
+        fontSize: 12,
         fontWeight: FontWeight.w600,
         color: theme.colorScheme.primary,
       ),
@@ -258,6 +280,7 @@ class _NavigationPageState extends ConsumerState<NavigationPage>
           FocusScope.of(context).unfocus();
         },
         child: Scaffold(
+          extendBody: true,
           body: PageView.builder(
             controller: _pageController,
             onPageChanged: _onPageChanged,

@@ -328,7 +328,10 @@ class _HomePageState extends ConsumerState<HomePage> {
         }
       },
       child: Scaffold(
+        extendBody: true,
+        backgroundColor: theme.colorScheme.surface,
         body: SafeArea(
+          bottom: false,
           child: _categoriesLoaded && _dynamicCategories.isNotEmpty
               ? RefreshIndicator(
             color: theme.primaryColor,
@@ -483,8 +486,6 @@ class _HomePageState extends ConsumerState<HomePage> {
                 const SliverToBoxAdapter(child: SizedBox(height: 8)),
 
                 _buildPostsForCategory(_selectedIndex),
-
-                const SliverToBoxAdapter(child: SizedBox(height: 80)),
               ],
             ),
           )
