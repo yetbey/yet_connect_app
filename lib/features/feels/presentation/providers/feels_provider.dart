@@ -12,6 +12,8 @@ import 'package:google_generative_ai/google_generative_ai.dart';
 // ============================================================================
 class FeelsState {
   final int currentStreak;
+  final int? leaderboardPosition;
+  final int? leaderboardWeeklyPoints;
   final String? selectedMood;
   final String? aiMessage;
   final bool isAiLoading;
@@ -26,6 +28,8 @@ class FeelsState {
 
   const FeelsState({
     this.currentStreak = 0,
+    this.leaderboardPosition,
+    this.leaderboardWeeklyPoints,
     this.selectedMood,
     this.aiMessage,
     this.isAiLoading = false,
@@ -41,6 +45,8 @@ class FeelsState {
 
   FeelsState copyWith({
     int? currentStreak,
+    int? leaderboardPosition,
+    int? leaderboardWeeklyPoints,
     String? selectedMood,
     String? aiMessage,
     bool? isAiLoading,
@@ -55,6 +61,8 @@ class FeelsState {
   }) {
     return FeelsState(
       currentStreak: currentStreak ?? this.currentStreak,
+      leaderboardPosition: leaderboardPosition ?? this.leaderboardPosition,
+      leaderboardWeeklyPoints: leaderboardWeeklyPoints ?? this.leaderboardWeeklyPoints,
       selectedMood: selectedMood ?? this.selectedMood,
       aiMessage: aiMessage ?? this.aiMessage,
       isAiLoading: isAiLoading ?? this.isAiLoading,
@@ -93,6 +101,7 @@ class FeelsNotifier extends Notifier<FeelsState> {
         _loadDailyMissions(),
         _loadWeeklyPoints(),
         _loadUserStats(),
+        _loadLeaderboardPosition(),
       ]);
 
       state = state.copyWith(isLoading: false);
@@ -107,6 +116,36 @@ class FeelsNotifier extends Notifier<FeelsState> {
         isLoading: false,
         error: 'Veriler yüklenirken bir hata oluştu',
       );
+    }
+  }
+
+  Future<void> _loadLeaderboardPosition() async {
+    try {
+      final userId = _supabase.auth.currentUser?.id;
+      if (userId == null) return;
+
+      final leaderboard = await _pointsService.getLeaderboard(
+        limit: 1000,
+        period: 'weekly',
+      );
+
+      final entry = leaderboard.firstWhere(
+            (e) => e['user_id'] == userId,
+        orElse: () => <String, dynamic>{},
+      );
+
+      if (entry.isNotEmpty){
+        state = state.copyWith(
+          leaderboardPosition: entry['rank_position'] as int?,
+          leaderboardWeeklyPoints: entry['total_points'] as int?,
+        );
+      } else {
+        state = state.copyWith(leaderboardWeeklyPoints: 0);
+      }
+
+      LogService.i('✅ Leaderboard pozisyonu yüklendi: #${entry['rank_position']}');
+    } catch (e) {
+      LogService.e('❌ Leaderboard pozisyonu yükleme hatası', e);
     }
   }
 

@@ -9,11 +9,15 @@ import 'package:yet_x_app/core/services/navigation_service.dart';
 import 'package:yet_x_app/core/services/custom_cache_manager.dart';
 import 'package:yet_x_app/config/routes/app_routes.dart';
 import 'package:yet_x_app/features/feed/presentation/providers/post_provider.dart';
+import 'package:yet_x_app/features/gamification/data/models/announcement_model.dart';
+import 'package:yet_x_app/features/gamification/presentation/pages/leaderboard_page.dart';
 import 'package:yet_x_app/features/profile/presentation/providers/user_provider.dart';
 import 'package:yet_x_app/shared/models/user_model.dart';
 import 'package:yet_x_app/features/feels/presentation/providers/feels_provider.dart';
 import 'package:yet_x_app/core/utils/utils.dart';
 import 'package:animated_text_kit/animated_text_kit.dart';
+import 'package:yet_x_app/features/gamification/presentation/providers/announcement_provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class FeelsPage extends ConsumerStatefulWidget {
   const FeelsPage({super.key});
@@ -797,36 +801,19 @@ class _FeelsPageState extends ConsumerState<FeelsPage>
   // ============================================================================
 
   Widget _buildAnnouncementBanners(BuildContext context) {
-    final announcements = [
-      {
-        'type': 'update',
-        'title': '🎉 Yeni Özellikler!',
-        'description': 'Video paylaşımı artık daha hızlı',
-        'gradient': [const Color(0xFF667eea), const Color(0xFF764ba2)],
-        'icon': Icons.celebration,
-      },
-      {
-        'type': 'trending',
-        'title': '🔥 Ayın En Popüleri',
-        'description': 'En çok beğenilen 10 gönderiyi keşfet',
-        'gradient': [const Color(0xFFFF6B6B), const Color(0xFFFFE66D)],
-        'icon': Icons.local_fire_department,
-      },
-      {
-        'type': 'news',
-        'title': '📰 Haftanın Haberleri',
-        'description': 'Bu hafta neler oldu?',
-        'gradient': [const Color(0xFF4FACFE), const Color(0xFF00F2FE)],
-        'icon': Icons.newspaper,
-      },
-      {
-        'type': 'challenge',
-        'title': '🏆 Haftalık Görev',
-        'description': '5 gönderi paylaş, rozet kazan!',
-        'gradient': [const Color(0xFFFFD89B), const Color(0xFF19547B)],
-        'icon': Icons.emoji_events,
-      },
-    ];
+    final announcementsState = ref.watch(announcementsProvider);
+    final announcements = announcementsState.announcements;
+
+    if (announcementsState.isLoading && announcements.isEmpty) {
+      return const SizedBox(
+        height: 140,
+        child: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    if (announcements.isEmpty) {
+      return const SizedBox.shrink();
+    }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -856,13 +843,13 @@ class _FeelsPageState extends ConsumerState<FeelsPage>
               return Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: _buildAnnouncementCard(
-                  title: announcement['title'] as String,
-                  description: announcement['description'] as String,
-                  gradient: announcement['gradient'] as List<Color>,
-                  icon: announcement['icon'] as IconData,
+                  title: announcement.title,
+                  description: announcement.description,
+                  gradient: [announcement.startColor, announcement.endColor],
+                  icon: announcement.iconData,
                   onTap: () {
                     HapticFeedback.selectionClick();
-                    // TODO: Navigate to announcement detail
+                    _handleAnnouncementTap(announcement);
                   },
                 ),
               );
@@ -886,6 +873,53 @@ class _FeelsPageState extends ConsumerState<FeelsPage>
         ),
       ],
     );
+  }
+
+  void _handleAnnouncementTap(AnnouncementModel announcement) {
+    switch (announcement.actionType) {
+      case 'tag':
+        if (announcement.actionValue != null) {
+          NavigationService.toNamed(
+            AppRoutes.tagPosts,
+            arguments: {'tag': announcement.actionValue},
+          );
+        }
+        break;
+
+      case 'post':
+        if (announcement.actionValue != null) {
+          _openPostDetail(announcement.actionValue!);
+        }
+        break;
+
+      case 'url':
+        if (announcement.actionValue != null) {
+          _openExternalUrl(announcement.actionValue!);
+        }
+        break;
+
+      default:
+      // 'none' → hiçbir şey yapma
+        break;
+    }
+  }
+
+  Future<void> _openExternalUrl(String url) async {
+    final uri = Uri.tryParse(url);
+    if (uri != null && await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    }
+  }
+
+  Future<void> _openPostDetail(String postId) async {
+    // TODO: Gerçek post servisini bağla, örnek kullanım:
+    // final post = await PostService().getPostById(postId);
+    // if (post != null) {
+    //   NavigationService.toNamed(
+    //     AppRoutes.detailedPost,
+    //     arguments: {'post': post},
+    //   );
+    // }
   }
 
   Widget _buildAnnouncementCard({
@@ -1865,6 +1899,9 @@ class _FeelsPageState extends ConsumerState<FeelsPage>
 
   Widget _buildLeaderboard(BuildContext context) {
     final currentUser = ref.watch(userProvider).currentUser;
+    final feelsState = ref.watch(feelsProvider);
+    final position = feelsState.leaderboardPosition;
+    final weeklyPoints = feelsState.leaderboardWeeklyPoints ?? feelsState.weeklyPoints;
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -1899,11 +1936,11 @@ class _FeelsPageState extends ConsumerState<FeelsPage>
                 ),
               ),
               const SizedBox(width: 16),
-              const Expanded(
+              Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
+                    const Text(
                       'Liderlik Tablosu',
                       style: TextStyle(
                         color: Colors.white,
@@ -1912,8 +1949,10 @@ class _FeelsPageState extends ConsumerState<FeelsPage>
                       ),
                     ),
                     Text(
-                      'Bu haftaki sıralamanız',
-                      style: TextStyle(color: Colors.white70, fontSize: 13),
+                      position != null
+                      ? 'Bu hafta $weeklyPoints puanla #$position. sıradasın'
+                          : 'Bu hafta henüz puan kazanmadın',
+                      style: const TextStyle(color: Colors.white70, fontSize: 13),
                     ),
                   ],
                 ),
@@ -1927,14 +1966,14 @@ class _FeelsPageState extends ConsumerState<FeelsPage>
                   color: Colors.white.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(20),
                 ),
-                child: const Row(
+                child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.trending_up, color: Colors.white, size: 20),
-                    SizedBox(width: 6),
+                    const Icon(Icons.trending_up, color: Colors.white, size: 20),
+                    const SizedBox(width: 6),
                     Text(
-                      '#42',
-                      style: TextStyle(
+                      position != null ? '#$position' : '-',
+                      style: const TextStyle(
                         color: Colors.white,
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
@@ -1949,10 +1988,8 @@ class _FeelsPageState extends ConsumerState<FeelsPage>
           ElevatedButton(
             onPressed: () {
               HapticFeedback.mediumImpact();
-              // TODO: Navigate to full leaderboard
-              Utils.showSnackBar(
-                text: 'Tam liderlik tablosu yakında!',
-                isError: false,
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const LeaderboardPage()),
               );
             },
             style: ElevatedButton.styleFrom(

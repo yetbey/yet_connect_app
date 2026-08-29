@@ -6,7 +6,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_nav_bar/google_nav_bar.dart';
 import 'package:iconsax_plus/iconsax_plus.dart';
 import 'package:yet_x_app/core/services/update_service.dart';
 import 'package:yet_x_app/features/chat/presentation/pages/chat_list_page.dart';
@@ -299,16 +298,6 @@ class _NavigationPageState extends ConsumerState<NavigationPage>
         );
       },
     );
-  }
-
-  List<GButton> _buildNavItems() {
-    return [
-      const GButton(icon: IconsaxPlusBold.home_hashtag),
-      const GButton(icon: IconsaxPlusBold.monitor_mobbile),
-      const GButton(icon: IconsaxPlusBold.message),
-      const GButton(icon: IconsaxPlusBold.search_favorite_1),
-      const GButton(icon: IconsaxPlusBold.profile),
-    ];
   }
 
   // ============================================================================

@@ -43,7 +43,7 @@ class LeaderboardNotifier extends Notifier<LeaderboardState> {
 
   @override
   LeaderboardState build() {
-    _loadLeaderboard();
+    Future.microtask(() => _loadLeaderboard());
     return const LeaderboardState();
   }
 
