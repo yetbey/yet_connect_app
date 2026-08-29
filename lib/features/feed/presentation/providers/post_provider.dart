@@ -11,7 +11,10 @@ import 'package:yet_x_app/features/feed/data/models/post_model.dart';
 import 'package:yet_x_app/features/feed/data/post_repository.dart';
 import 'package:yet_x_app/core/utils/error_handler.dart';
 import 'package:yet_x_app/core/utils/utils.dart';
+import 'package:yet_x_app/features/feels/presentation/providers/feels_provider.dart';
+import 'package:yet_x_app/features/gamification/presentation/providers/points_provider.dart';
 import 'package:yet_x_app/generated/locale_keys.g.dart';
+import 'package:yet_x_app/features/gamification/data/services/activity_tracker.dart';
 
 // ============================================================================
 // FEED STATE
@@ -346,6 +349,11 @@ class PostActionsNotifier extends Notifier<bool> {
         tagCount: tags?.length,
       );
 
+      await ActivityTracker.onPostCreated();
+
+      ref.read(pointsProvider.notifier).refreshPoints();
+      ref.read(feelsProvider.notifier).refresh();
+
       Utils.showSnackBar(text: LocaleKeys.feed_post_shared.tr(), isError: false);
       return true;
     } catch (e, stackTrace) {
@@ -537,6 +545,11 @@ class PostActionsNotifier extends Notifier<bool> {
       // Log analytics only for new likes
       if (result['is_liked'] as bool) {
         await AnalyticsHelper.logPostLiked(post.id);
+
+        await ActivityTracker.onLikeCreated();
+
+        ref.read(pointsProvider.notifier).refreshPoints();
+        ref.read(feelsProvider.notifier).refresh();
       }
     } catch (e, stackTrace) {
       // Rollback optimistic update on error

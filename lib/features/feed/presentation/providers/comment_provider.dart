@@ -3,7 +3,10 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:yet_x_app/core/utils/analytics_helper.dart';
 import 'package:yet_x_app/features/feed/data/models/comment_model.dart';
 import 'package:yet_x_app/core/utils/logger_service.dart';
-import 'package:yet_x_app/core/utils/error_handler.dart'; // ✅ EKLE
+import 'package:yet_x_app/core/utils/error_handler.dart';
+import 'package:yet_x_app/features/feels/presentation/providers/feels_provider.dart';
+import 'package:yet_x_app/features/gamification/data/services/activity_tracker.dart';
+import 'package:yet_x_app/features/gamification/presentation/providers/points_provider.dart'; // ✅ EKLE
 
 class CommentsState {
   final List<CommentModel> comments;
@@ -91,6 +94,12 @@ class CommentsNotifier extends FamilyNotifier<CommentsState, String> {
 
       ErrorHandler.log('Comment added successfully');
       await AnalyticsHelper.logCommentAdded(postId);
+
+      await ActivityTracker.onCommentCreated();
+
+      ref.read(pointsProvider.notifier).refreshPoints();
+      ref.read(feelsProvider.notifier).refresh();
+
     } catch (e, stackTrace) {
       // ✅ Log error
       LogService.e('Yorum eklenirken bir hata oluştu.', e, stackTrace);

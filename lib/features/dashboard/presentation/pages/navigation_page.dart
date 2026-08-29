@@ -13,8 +13,10 @@ import 'package:yet_x_app/features/dashboard/presentation/providers/ui_provider.
 import 'package:yet_x_app/features/feed/presentation/pages/explore_page.dart';
 import 'package:yet_x_app/features/feed/presentation/pages/search_page.dart';
 import 'package:yet_x_app/features/feels/presentation/pages/feels_page.dart';
+import 'package:yet_x_app/features/gamification/presentation/providers/points_provider.dart';
 import 'package:yet_x_app/features/profile/presentation/pages/profile_page.dart';
 import 'package:yet_x_app/features/profile/presentation/providers/user_provider.dart';
+import 'package:yet_x_app/features/gamification/presentation/widgets/rank_up_dialog.dart';
 
 class NavigationPage extends ConsumerStatefulWidget {
   const NavigationPage({super.key});
@@ -267,6 +269,21 @@ class _NavigationPageState extends ConsumerState<NavigationPage>
         _navBarController.forward();
       } else {
         _navBarController.reverse();
+      }
+    });
+
+    ref.listen(pointsProvider, (previous, next) {
+      if (previous != null &&
+          previous.currentRank != null &&
+          next.currentRank != null) {
+
+        // Eğer önceki rütbenin ID'si yeni rütbenin ID'sinden farklıysa (Rütbe atladıysa)
+        if (previous.currentRank!.id != next.currentRank!.id &&
+            next.userPoints!.totalPoints > previous.userPoints!.totalPoints) {
+
+          // Konfetili kutlama ekranını göster
+          showRankUpDialog(context, previous.currentRank!, next.currentRank!);
+        }
       }
     });
 
