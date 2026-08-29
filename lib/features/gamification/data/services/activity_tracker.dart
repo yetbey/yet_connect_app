@@ -1,5 +1,6 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:yet_x_app/core/utils/logger_service.dart';
+import 'package:yet_x_app/features/gamification/core/constants/scoring_constants.dart';
 import 'package:yet_x_app/features/gamification/data/services/points_service.dart';
 import 'package:yet_x_app/features/gamification/data/services/mission_service.dart';
 
@@ -8,21 +9,19 @@ class ActivityTracker {
   static final _missionService = MissionService();
   static final _supabase = Supabase.instance.client;
 
-  /// Post paylaştığında
+  /// When a post is shared
   static Future<void> onPostCreated() async {
     final userId = _supabase.auth.currentUser?.id;
     if (userId == null) return;
 
     try {
-      // Puan ekle
       await _pointsService.addPoints(
         userId: userId,
-        points: 20,
+        points: ScoringConstants.postPoints,
         source: 'post',
         description: 'Gönderi paylaştı',
       );
 
-      // Görev ilerlemesini güncelle
       await _missionService.updateMissionProgress(
         userId: userId,
         missionId: 1, // "İlk Gönderi" görevi
@@ -42,21 +41,19 @@ class ActivityTracker {
     }
   }
 
-  /// Beğeni yaptığında
+  /// When a post is liked
   static Future<void> onLikeCreated() async {
     final userId = _supabase.auth.currentUser?.id;
     if (userId == null) return;
 
     try {
-      // Puan ekle
       await _pointsService.addPoints(
         userId: userId,
-        points: 2,
+        points: ScoringConstants.likePoints,
         source: 'like',
         description: 'Beğeni yaptı',
       );
 
-      // Görev ilerlemesini güncelle
       await _missionService.updateMissionProgress(
         userId: userId,
         missionId: 2, // "5 Beğeni Yap" görevi
@@ -69,21 +66,19 @@ class ActivityTracker {
     }
   }
 
-  /// Yorum yaptığında
+  /// When a post is comment
   static Future<void> onCommentCreated() async {
     final userId = _supabase.auth.currentUser?.id;
     if (userId == null) return;
 
     try {
-      // Puan ekle
       await _pointsService.addPoints(
         userId: userId,
-        points: 5,
+        points: ScoringConstants.commentPoints,
         source: 'comment',
         description: 'Yorum yaptı',
       );
 
-      // Görev ilerlemesini güncelle
       await _missionService.updateMissionProgress(
         userId: userId,
         missionId: 3, // "3 Yorum At" görevi
@@ -103,7 +98,7 @@ class ActivityTracker {
     }
   }
 
-  /// Streak (günlük seri) bonusu
+  /// Streak (daily streak) bonus
   static Future<void> onStreakMilestone(int streakDays) async {
     final userId = _supabase.auth.currentUser?.id;
     if (userId == null) return;
@@ -136,11 +131,11 @@ class ActivityTracker {
       int points = 0;
 
       if (position == 1) {
-        points = 100;
+        points = ScoringConstants.weeklyTop1;
       } else if (position == 2) {
-        points = 50;
+        points = ScoringConstants.weeklyTop2;
       } else if (position == 3) {
-        points = 25;
+        points = ScoringConstants.weeklyTop3;
       }
 
       if (points > 0) {

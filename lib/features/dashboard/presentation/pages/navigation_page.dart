@@ -3,6 +3,7 @@
 // ============================================================================
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_nav_bar/google_nav_bar.dart';
@@ -31,6 +32,7 @@ class _NavigationPageState extends ConsumerState<NavigationPage>
   // STATE & CONSTANTS
   // ============================================================================
   int _selectedIndex = 0;
+  bool _isTabTapped = false;
   final Map<int, Widget> _pageCache = {};
   late AnimationController _navBarController;
   late PageController _pageController;
@@ -111,25 +113,32 @@ class _NavigationPageState extends ConsumerState<NavigationPage>
   // NAVIGATION HANDLERS
   // ============================================================================
   void _onTabChange(int index) {
-    // Prevent rebuilding if same tab is tapped
     if (_selectedIndex == index) return;
 
-    // Provide haptic feedback for better UX
     HapticFeedback.selectionClick();
 
-    // Animate to the selected page
+    setState(() {
+      _selectedIndex = index;
+      _isTabTapped = true; // Geçiş süresince aradaki sekmeleri yoksayması için kilitliyoruz
+    });
+
     _pageController.animateToPage(
       index,
-      duration: const Duration(milliseconds: 300),
-      curve: Curves.easeInOut,
-    );
-
-    // Update selected index
-    setState(() => _selectedIndex = index);
+      duration: const Duration(milliseconds: 350),
+      curve: Curves.easeOutCubic, // Lense uygun daha yumuşak bir geçiş eğrisi
+    ).then((_) {
+      // Sayfa animasyonu bittiğinde kilidi aç
+      if (mounted) {
+        _isTabTapped = false;
+      }
+    });
   }
 
   void _onPageChanged(int index) {
-    // Update selected index when swiping
+    // Eğer sayfa değişimi kullanıcının alt bara tıklamasıyla tetiklendiyse,
+    // aradaki sayfaların lensi şaşırtmasını engelle
+    if (_isTabTapped) return;
+
     if (_selectedIndex != index) {
       HapticFeedback.selectionClick();
       setState(() => _selectedIndex = index);
@@ -171,9 +180,16 @@ class _NavigationPageState extends ConsumerState<NavigationPage>
     return AnimatedBuilder(
       animation: _navBarController,
       builder: (context, child) {
+        // Küçülme (Scale) ve Aşağı Kayma (Translate) efekti
         return Transform.translate(
           offset: Offset(0, (_navBarHeight + 30) * (1 - _navBarController.value)),
-          child: Opacity(opacity: _navBarController.value, child: child),
+          child: Transform.scale(
+            scale: 0.9 + (0.1 * _navBarController.value), // Gizlenirken hafifçe küçülür
+            child: Opacity(
+                opacity: _navBarController.value,
+                child: child
+            ),
+          ),
         );
       },
       child: Padding(
@@ -205,10 +221,7 @@ class _NavigationPageState extends ConsumerState<NavigationPage>
               child: SafeArea(
                 top: false,
                 bottom: false,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 14.0, vertical: 4),
-                  child: _buildGNav(theme),
-                ),
+                child: _buildLiquidNav(theme), // GNav yerine özel lensli yapı kullanıyoruz
               ),
             ),
           ),
@@ -217,28 +230,74 @@ class _NavigationPageState extends ConsumerState<NavigationPage>
     );
   }
 
-  Widget _buildGNav(ThemeData theme) {
-    return GNav(
-      curve: Curves.easeInOutCubic,
-      rippleColor: theme.colorScheme.secondary.withValues(alpha: 0.1),
-      hoverColor: theme.colorScheme.secondary.withValues(alpha: 0.1),
-      haptic: true,
-      tabBorderRadius: 20,
-      tabBackgroundColor: theme.colorScheme.primary.withValues(alpha: 0.15),
-      duration: const Duration(milliseconds: 350),
-      gap: 6,
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      color: theme.iconTheme.color?.withValues(alpha: 0.6),
-      activeColor: theme.colorScheme.primary,
-      iconSize: 26,
-      textStyle: TextStyle(
-        fontSize: 12,
-        fontWeight: FontWeight.w600,
-        color: theme.colorScheme.primary,
-      ),
-      tabs: _buildNavItems(),
-      selectedIndex: _selectedIndex,
-      onTabChange: _onTabChange,
+  Widget _buildLiquidNav(ThemeData theme) {
+    final icons = [
+      IconsaxPlusBold.home_hashtag,
+      IconsaxPlusBold.monitor_mobbile,
+      IconsaxPlusBold.message,
+      IconsaxPlusBold.search_favorite_1,
+      IconsaxPlusBold.profile,
+    ];
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final tabWidth = constraints.maxWidth / 5; // Genişliği 5 sekmeye bölüyoruz
+
+        return Stack(
+          children: [
+            // Arka planda kayan Lens
+            AnimatedPositioned(
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeOutCubic,
+              left: _selectedIndex * tabWidth,
+              top: 0,
+              bottom: 0,
+              width: tabWidth,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 10.0),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.primary.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                ),
+              ),
+            ),
+            // İkonlar
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: List.generate(5, (index) {
+                final isSelected = _selectedIndex == index;
+                return Expanded(
+                  child: GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: () => _onTabChange(index),
+                    child: Container(
+                      height: double.infinity,
+                      alignment: Alignment.center,
+                      child: AnimatedScale(
+                        scale: isSelected ? 1.15 : 1.0, // Seçili ikon hafifçe büyür
+                        duration: const Duration(milliseconds: 200),
+                        curve: Curves.easeOutBack,
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 200),
+                          child: Icon(
+                            icons[index],
+                            color: isSelected
+                                ? theme.colorScheme.primary
+                                : theme.iconTheme.color?.withValues(alpha: 0.6),
+                            size: 26,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                );
+              }),
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -263,7 +322,6 @@ class _NavigationPageState extends ConsumerState<NavigationPage>
       userProvider.select((state) => state.currentUser?.id),
     );
 
-    // Listen to navigation bar visibility changes and animate accordingly
     ref.listen(uiProvider, (previous, next) {
       if (next) {
         _navBarController.forward();
@@ -276,12 +334,8 @@ class _NavigationPageState extends ConsumerState<NavigationPage>
       if (previous != null &&
           previous.currentRank != null &&
           next.currentRank != null) {
-
-        // Eğer önceki rütbenin ID'si yeni rütbenin ID'sinden farklıysa (Rütbe atladıysa)
         if (previous.currentRank!.id != next.currentRank!.id &&
             next.userPoints!.totalPoints > previous.userPoints!.totalPoints) {
-
-          // Konfetili kutlama ekranını göster
           showRankUpDialog(context, previous.currentRank!, next.currentRank!);
         }
       }
@@ -298,14 +352,30 @@ class _NavigationPageState extends ConsumerState<NavigationPage>
         },
         child: Scaffold(
           extendBody: true,
-          body: PageView.builder(
-            controller: _pageController,
-            onPageChanged: _onPageChanged,
-            physics: const _CustomPageScrollPhysics(),
-            itemCount: 5,
-            itemBuilder: (context, index) {
-              return _buildPage(index, currentUserId);
+          // Aşağı/yukarı kaydırma hareketlerini dinleyen yapı
+          body: NotificationListener<UserScrollNotification>(
+            onNotification: (notification) {
+              // Yalnızca dikey (iç sayfalardaki) kaydırmaları algıla, PageView'in yatay geçişlerini yoksay
+              if (notification.metrics.axis == Axis.vertical) {
+                if (notification.direction == ScrollDirection.reverse) {
+                  // Ekranda aşağı inildiğinde nav barı gizle
+                  if (_navBarController.isCompleted) _navBarController.reverse();
+                } else if (notification.direction == ScrollDirection.forward) {
+                  // Ekranda yukarı çıkıldığında nav barı göster
+                  if (_navBarController.isDismissed) _navBarController.forward();
+                }
+              }
+              return false;
             },
+            child: PageView.builder(
+              controller: _pageController,
+              onPageChanged: _onPageChanged,
+              physics: const _CustomPageScrollPhysics(),
+              itemCount: 5,
+              itemBuilder: (context, index) {
+                return _buildPage(index, currentUserId);
+              },
+            ),
           ),
           bottomNavigationBar: _buildBottomNavBar(theme, isNavBarVisible),
         ),
