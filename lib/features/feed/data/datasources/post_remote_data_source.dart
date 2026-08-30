@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:yet_x_app/features/feed/data/models/post_model.dart';
@@ -13,6 +14,9 @@ abstract class PostRemoteDataSource {
   });
 
   Future<List<PostModel>> fetchUserPosts(String userId, String? currentUserId);
+
+  Future<PostModel?> getPostById(String postId);
+  Future<PostModel?> getRandomPost();
 
   Future<PostModel> createPost({
     required String caption,
@@ -304,6 +308,66 @@ class PostRemoteDataSourceImpl implements PostRemoteDataSource {
         .limit(limit);
 
     return (response as List).map((e) => e as Map<String, dynamic>).toList();
+  }
+
+  @override
+  Future<PostModel?> getPostById(String postId) async {
+    try {
+      final response = await _supabase
+          .from('posts')
+          .select('''
+          *,
+          profiles:profiles!posts_user_id_fkey(*),
+          post_likes(count),
+          comments(count),
+          my_likes:post_likes(user_id)
+        ''').eq('id', postId).maybeSingle();
+
+      if (response == null) return null;
+      return PostModel.fromJson(response);
+    } catch (e) {
+      ErrorHandler.logError(
+        e,
+        context: 'Get Post By Id',
+        severity: ErrorSeverity.medium,
+      );
+      return null;
+    }
+  }
+
+  Future<PostModel?> getRandomPost() async {
+    try {
+      final countResponse = await _supabase
+          .from('posts').select('id').count(CountOption.exact);
+
+      final total = countResponse.count;
+      if (total == 0) return null;
+
+      final randomOffset = Random().nextInt(total);
+
+      final response = await _supabase
+          .from('posts')
+          .select('''
+          *,
+          profiles:profiles!posts_user_id_fkey(*),
+          post_likes(count),
+          comments(count),
+          my_likes:post_likes(user_id)
+        ''')
+          .order('created_at', ascending: false)
+          .range(randomOffset, randomOffset)
+          .maybeSingle();
+
+      if (response == null) return null;
+      return PostModel.fromJson(response);
+    } catch (e) {
+      ErrorHandler.logError(
+        e,
+        context: 'Get Random Post',
+        severity: ErrorSeverity.low,
+      );
+      return null;
+    }
   }
 
   @override

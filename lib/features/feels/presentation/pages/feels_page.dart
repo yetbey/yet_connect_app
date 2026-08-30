@@ -8,6 +8,7 @@ import 'package:yet_x_app/core/constants/app_colors.dart';
 import 'package:yet_x_app/core/services/navigation_service.dart';
 import 'package:yet_x_app/core/services/custom_cache_manager.dart';
 import 'package:yet_x_app/config/routes/app_routes.dart';
+import 'package:yet_x_app/features/feed/data/post_repository.dart';
 import 'package:yet_x_app/features/feed/presentation/providers/post_provider.dart';
 import 'package:yet_x_app/features/gamification/data/models/announcement_model.dart';
 import 'package:yet_x_app/features/gamification/presentation/pages/leaderboard_page.dart';
@@ -912,14 +913,17 @@ class _FeelsPageState extends ConsumerState<FeelsPage>
   }
 
   Future<void> _openPostDetail(String postId) async {
-    // TODO: Gerçek post servisini bağla, örnek kullanım:
-    // final post = await PostService().getPostById(postId);
-    // if (post != null) {
-    //   NavigationService.toNamed(
-    //     AppRoutes.detailedPost,
-    //     arguments: {'post': post},
-    //   );
-    // }
+    final repository = ref.read(postRepositoryProvider);
+    final post = await repository.getPostById(postId);
+
+    if (!mounted) return;
+
+    if (post != null) {
+      NavigationService.toNamed(
+        AppRoutes.detailedPost,
+        arguments: {'post': post},
+      );
+    }
   }
 
   Widget _buildAnnouncementCard({
@@ -1264,7 +1268,22 @@ class _FeelsPageState extends ConsumerState<FeelsPage>
       child: ElevatedButton.icon(
         onPressed: () async {
           HapticFeedback.mediumImpact();
-          // TODO: Show random post/user
+          final repository = ref.read(postRepositoryProvider);
+          final post = await repository.getRandomPost();
+
+          if (!context.mounted) return;
+
+          if (post != null) {
+            NavigationService.toNamed(
+              AppRoutes.detailedPost,
+              arguments: {'post': post},
+            );
+          } else {
+            Utils.showSnackBar(
+              text: 'Henüz gösterilecek gönderi yok',
+              isError: true,
+            );
+          }
         },
         icon: const Icon(Icons.shuffle_rounded, size: 28),
         label: const Text(

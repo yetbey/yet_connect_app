@@ -239,6 +239,14 @@ class PostRepository {
     return _remoteDataSource.getPostsByTag(tag, limit: limit);
   }
 
+  Future<PostModel?> getPostById(String postId) {
+    return _remoteDataSource.getPostById(postId);
+  }
+
+  Future<PostModel?> getRandomPost() {
+    return _remoteDataSource.getRandomPost();
+  }
+
   Future<List<Map<String, dynamic>>> getPopularTags({int limit = 20}) {
     return _remoteDataSource.getPopularTags(limit: limit);
   }
