@@ -12,6 +12,7 @@ import 'package:yet_x_app/features/feed/data/post_repository.dart';
 import 'package:yet_x_app/features/feed/presentation/providers/post_provider.dart';
 import 'package:yet_x_app/features/gamification/data/models/announcement_model.dart';
 import 'package:yet_x_app/features/gamification/presentation/pages/leaderboard_page.dart';
+import 'package:yet_x_app/features/gamification/presentation/providers/daily_challenge_provider.dart';
 import 'package:yet_x_app/features/profile/presentation/providers/user_provider.dart';
 import 'package:yet_x_app/shared/models/user_model.dart';
 import 'package:yet_x_app/features/feels/presentation/providers/feels_provider.dart';
@@ -102,6 +103,8 @@ class _FeelsPageState extends ConsumerState<FeelsPage>
             ref.invalidate(popularTagsProvider);
             ref.invalidate(followedTagsProvider);
             ref.invalidate(featuredUsersProvider);
+            ref.invalidate(announcementsProvider);
+            ref.invalidate(dailyChallengeProvider);
             ref.read(feelsProvider.notifier).refresh();
             await ref.read(feedProvider.notifier).fetchPosts(isRefresh: true);
           },
@@ -1090,6 +1093,20 @@ class _FeelsPageState extends ConsumerState<FeelsPage>
   // ============================================================================
 
   Widget _buildDailyPhotoChallenge(BuildContext context) {
+    final state = ref.watch(dailyChallengeProvider);
+    final challenge = state.challenge;
+
+    if (state.isLoading && challenge == null) {
+      return const SizedBox(
+        height: 90,
+        child: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    if (challenge == null) {
+      return const SizedBox.shrink();
+    }
+
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
@@ -1110,7 +1127,11 @@ class _FeelsPageState extends ConsumerState<FeelsPage>
         child: InkWell(
           onTap: () {
             HapticFeedback.mediumImpact();
-            // TODO: Show challenge details
+            Navigator.of(context).pushNamed(AppRoutes.createPost);
+            Utils.showSnackBar(
+              text: 'Etikete #${challenge.tagName} ekleyerek katıl! 🌅',
+              isError: false,
+            );
           },
           borderRadius: BorderRadius.circular(20),
           child: Padding(
@@ -1123,29 +1144,51 @@ class _FeelsPageState extends ConsumerState<FeelsPage>
                     color: Colors.white.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: const Icon(
-                    Icons.camera_alt,
-                    color: Colors.white,
-                    size: 28,
+                  child: Text(
+                    challenge.themeEmoji,
+                    style: const TextStyle(fontSize: 28),
                   ),
                 ),
                 const SizedBox(width: 16),
-                const Expanded(
+                Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      Row(
+                        children: [
+                          const Text(
+                            'Günün Challenge\'ı',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          if (state.hasParticipated) ...[
+                            const SizedBox(width: 6),
+                            const Icon(
+                              Icons.check_circle,
+                              color: Colors.white,
+                              size: 16,
+                            ),
+                          ],
+                        ],
+                      ),
+                      const SizedBox(height: 4),
                       Text(
-                        'Günün Challenge\'ı',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
+                        'Tema: ${challenge.themeTitle} ${challenge.themeEmoji}',
+                        style: const TextStyle(
+                          color: Colors.white70,
+                          fontSize: 13,
                         ),
                       ),
-                      SizedBox(height: 4),
+                      const SizedBox(height: 4),
                       Text(
-                        'Tema: Gün Batımı 🌅',
-                        style: TextStyle(color: Colors.white70, fontSize: 13),
+                        '${state.participantCount} kişi katıldı · +${challenge.rewardPoints} XP',
+                        style: TextStyle(
+                          color: Colors.white.withValues(alpha: 0.8),
+                          fontSize: 11,
+                        ),
                       ),
                     ],
                   ),
