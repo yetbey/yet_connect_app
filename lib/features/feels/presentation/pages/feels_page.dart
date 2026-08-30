@@ -114,10 +114,10 @@ class _FeelsPageState extends ConsumerState<FeelsPage>
               parent: AlwaysScrollableScrollPhysics(),
             ),
             slivers: [
-              // ✨ App Bar
+              // App Bar
               _buildSliverAppBar(theme, colorScheme),
 
-              // 1️⃣ Hero Banner
+              // Hero Banner
               SliverToBoxAdapter(
                 child: FadeTransition(
                   opacity: _headerAnimation,
@@ -125,18 +125,18 @@ class _FeelsPageState extends ConsumerState<FeelsPage>
                 ),
               ),
 
-              // 🔥 Streak Counter
+              // Today's Summary (Streak + Points + Ranking)
               SliverToBoxAdapter(
                 child: SlideTransition(
                   position: Tween<Offset>(
                     begin: const Offset(0, 0.3),
                     end: Offset.zero,
                   ).animate(_headerAnimation),
-                  child: _buildStreakCounter(context),
+                  child: _buildTodayStatsRow(context),
                 ),
               ),
 
-              // 🎨 Mood Tracker
+              // Mood Tracker
               SliverToBoxAdapter(
                 child: SlideTransition(
                   position: Tween<Offset>(
@@ -147,7 +147,7 @@ class _FeelsPageState extends ConsumerState<FeelsPage>
                 ),
               ),
 
-              // 🎯 Daily Missions
+              // Daily Missions
               SliverToBoxAdapter(
                 child: SlideTransition(
                   position: Tween<Offset>(
@@ -158,7 +158,7 @@ class _FeelsPageState extends ConsumerState<FeelsPage>
                 ),
               ),
 
-              // 2️⃣ Announcements
+              // Announcements
               SliverToBoxAdapter(
                 child: SlideTransition(
                   position: Tween<Offset>(
@@ -169,51 +169,18 @@ class _FeelsPageState extends ConsumerState<FeelsPage>
                 ),
               ),
 
-              // 🎁 Weekly Rewards
+              // Quick Actions
               SliverToBoxAdapter(
                 child: SlideTransition(
                   position: Tween<Offset>(
                     begin: const Offset(0, 0.3),
                     end: Offset.zero,
                   ).animate(_headerAnimation),
-                  child: _buildWeeklyRewards(context),
+                  child: _buildQuickActions(context),
                 ),
               ),
 
-              // 📸 Daily Photo Challenge
-              SliverToBoxAdapter(
-                child: SlideTransition(
-                  position: Tween<Offset>(
-                    begin: const Offset(0, 0.3),
-                    end: Offset.zero,
-                  ).animate(_headerAnimation),
-                  child: _buildDailyPhotoChallenge(context),
-                ),
-              ),
-
-              // 🎉 Live Events
-              SliverToBoxAdapter(
-                child: SlideTransition(
-                  position: Tween<Offset>(
-                    begin: const Offset(0, 0.3),
-                    end: Offset.zero,
-                  ).animate(_headerAnimation),
-                  child: _buildLiveEvents(context),
-                ),
-              ),
-
-              // 🎲 Random Discovery
-              SliverToBoxAdapter(
-                child: SlideTransition(
-                  position: Tween<Offset>(
-                    begin: const Offset(0, 0.3),
-                    end: Offset.zero,
-                  ).animate(_headerAnimation),
-                  child: _buildRandomDiscovery(context),
-                ),
-              ),
-
-              // 🎪 Mini Games
+              // Mini Games
               SliverToBoxAdapter(
                 child: SlideTransition(
                   position: Tween<Offset>(
@@ -224,7 +191,7 @@ class _FeelsPageState extends ConsumerState<FeelsPage>
                 ),
               ),
 
-              // 3️⃣ Weekly Top Users
+              // Weekly Top Users
               SliverToBoxAdapter(
                 child: SlideTransition(
                   position: Tween<Offset>(
@@ -235,7 +202,7 @@ class _FeelsPageState extends ConsumerState<FeelsPage>
                 ),
               ),
 
-              // 🏆 Leaderboard
+              // Leaderboard
               SliverToBoxAdapter(
                 child: SlideTransition(
                   position: Tween<Offset>(
@@ -246,7 +213,7 @@ class _FeelsPageState extends ConsumerState<FeelsPage>
                 ),
               ),
 
-              // 📊 Personal Stats
+              // Personal Stats
               SliverToBoxAdapter(
                 child: SlideTransition(
                   position: Tween<Offset>(
@@ -257,7 +224,7 @@ class _FeelsPageState extends ConsumerState<FeelsPage>
                 ),
               ),
 
-              // 4️⃣ Popular Tags
+              // Popular Tags
               SliverToBoxAdapter(
                 child: SlideTransition(
                   position: Tween<Offset>(
@@ -268,7 +235,7 @@ class _FeelsPageState extends ConsumerState<FeelsPage>
                 ),
               ),
 
-              // 5️⃣ Followed Tags
+              // Followed Tags
               SliverToBoxAdapter(
                 child: SlideTransition(
                   position: Tween<Offset>(
@@ -292,6 +259,8 @@ class _FeelsPageState extends ConsumerState<FeelsPage>
   // ============================================================================
 
   Widget _buildSliverAppBar(ThemeData theme, ColorScheme colorScheme) {
+    final currentUser = ref.watch(userProvider).currentUser;
+
     return SliverAppBar(
       automaticallyImplyLeading: false,
       expandedHeight: 0,
@@ -299,16 +268,76 @@ class _FeelsPageState extends ConsumerState<FeelsPage>
       pinned: true,
       elevation: 0,
       scrolledUnderElevation: 0,
-      backgroundColor: colorScheme.surface.withValues(
-        alpha: _showTitle ? 1 : 0,
+      backgroundColor: colorScheme.surface.withValues(alpha: _showTitle ? 1 : 0),
+      leadingWidth: 52,
+      leading: Padding(
+        padding: const EdgeInsets.only(left: 16),
+        child: GestureDetector(
+          onTap: () {
+            HapticFeedback.selectionClick();
+            if (currentUser != null) {
+              NavigationService.toNamed(AppRoutes.profile, arguments: currentUser.id);
+            }
+          },
+          child: CircleAvatar(
+            radius: 16,
+            backgroundColor: AppColors.primary.withValues(alpha: 0.15),
+            backgroundImage: currentUser?.profileImageUrl != null
+                ? CachedNetworkImageProvider(
+              currentUser!.profileImageUrl!,
+              cacheManager: CustomImageCacheManager(),
+            )
+                : null,
+            child: currentUser?.profileImageUrl == null
+                ? Text(
+              (currentUser?.fullName.isNotEmpty ?? false)
+                  ? currentUser!.fullName[0].toUpperCase()
+                  : '?',
+              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+            )
+                : null,
+          ),
+        ),
       ),
       title: AnimatedOpacity(
         opacity: _showTitle ? 1 : 0,
         duration: const Duration(milliseconds: 200),
         child: Text(
           '✨ Feels',
-          style: theme.textTheme.titleLarge?.copyWith(
-            fontWeight: FontWeight.bold,
+          style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+        ),
+      ),
+      actions: [
+        IconButton(
+          icon: const Icon(Icons.search_rounded),
+          onPressed: () {
+            HapticFeedback.selectionClick();
+            Navigator.of(context).pushNamed(AppRoutes.search);
+          },
+        ),
+        IconButton(
+          icon: const Icon(Icons.notifications_none_rounded),
+          onPressed: () {
+            HapticFeedback.selectionClick();
+            if (currentUser != null) {
+              NavigationService.toNamed(
+                AppRoutes.notifications,
+                arguments: {'userId': currentUser.id},
+              );
+            }
+          },
+        ),
+        const SizedBox(width: 8),
+      ],
+      bottom: PreferredSize(
+        preferredSize: const Size.fromHeight(1),
+        child: AnimatedOpacity(
+          opacity: _showTitle ? 1 : 0,
+          duration: const Duration(milliseconds: 200),
+          child: Divider(
+            height: 1,
+            thickness: 1,
+            color: theme.colorScheme.outline.withValues(alpha: 0.1),
           ),
         ),
       ),
@@ -406,80 +435,119 @@ class _FeelsPageState extends ConsumerState<FeelsPage>
   // 🔥 STREAK COUNTER
   // ============================================================================
 
-  Widget _buildStreakCounter(BuildContext context) {
+  Widget _buildTodayStatsRow(BuildContext context) {
     final feelsState = ref.watch(feelsProvider);
     final currentStreak = feelsState.currentStreak;
+    final weeklyPoints = feelsState.weeklyPoints;
+    final weeklyTarget = feelsState.weeklyPointsTarget;
+    final leaderboardPosition = feelsState.leaderboardPosition;
 
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFFFF6B6B), Color(0xFFFFE66D)],
-        ),
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFFFF6B6B).withValues(alpha: 0.3),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+      child: Row(
+        children: [
+          Expanded(
+            child: _buildStatChip(
+              context: context,
+              icon: Icons.local_fire_department,
+              accentColor: const Color(0xFFFF6B6B),
+              value: '$currentStreak',
+              label: currentStreak > 0 ? 'Gün Serisi' : 'Seri Başlat',
+              onTap: () {
+                HapticFeedback.selectionClick();
+                Navigator.of(context).pushNamed(AppRoutes.createPost);
+              },
+            ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: _buildStatChip(
+              context: context,
+              icon: Icons.card_giftcard,
+              accentColor: AppColors.primary,
+              value: '$weeklyPoints',
+              label: 'Puan / $weeklyTarget',
+              onTap: () {
+                HapticFeedback.selectionClick();
+              },
+            ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: _buildStatChip(
+              context: context,
+              icon: Icons.emoji_events,
+              accentColor: const Color(0xFF4FACFE),
+              value: leaderboardPosition != null
+                  ? '#$leaderboardPosition'
+                  : '—',
+              label: 'Sıralama',
+              onTap: () {
+                HapticFeedback.selectionClick();
+                Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => const LeaderboardPage()),
+                );
+              },
+            ),
           ),
         ],
       ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.2),
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: const Icon(
-              Icons.local_fire_department,
-              size: 36,
-              color: Colors.white,
+    );
+  }
+
+  Widget _buildStatChip({
+    required BuildContext context,
+    required IconData icon,
+    required Color accentColor,
+    required String value,
+    required String label,
+    required VoidCallback onTap,
+  }) {
+    final theme = Theme.of(context);
+    return Material(
+      color: theme.colorScheme.surfaceContainerHighest,
+      borderRadius: BorderRadius.circular(18),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(18),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 10),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(
+              color: theme.colorScheme.outline.withValues(alpha: 0.08),
             ),
           ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  currentStreak > 0
-                      ? '$currentStreak Günlük Seri! 🔥'
-                      : 'Seri Başlat!',
-                  style: const TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
+          child: Column(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: accentColor.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(12),
                 ),
-                Text(
-                  currentStreak > 0
-                      ? 'Devam et! 🎉'
-                      : 'Bugün paylaşım yap',
-                  style: TextStyle(
-                    color: Colors.white.withValues(alpha: 0.9),
-                    fontSize: 13,
-                  ),
+                child: Icon(icon, color: accentColor, size: 20),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                value,
+                style: theme.textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
                 ),
-              ],
-            ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                label,
+                textAlign: TextAlign.center,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+                ),
+              ),
+            ],
           ),
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.2),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(
-              currentStreak > 0 ? Icons.trending_up : Icons.rocket_launch,
-              color: Colors.white,
-              size: 24,
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }
@@ -513,9 +581,9 @@ class _FeelsPageState extends ConsumerState<FeelsPage>
               const SizedBox(width: 8),
               Text(
                 'Bugün nasıl hissediyorsun?',
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
+                style: Theme.of(
+                  context,
+                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
               ),
             ],
           ),
@@ -533,7 +601,9 @@ class _FeelsPageState extends ConsumerState<FeelsPage>
               return GestureDetector(
                 onTap: () {
                   HapticFeedback.lightImpact();
-                  ref.read(feelsProvider.notifier).selectMood(mood['label'] as String);
+                  ref
+                      .read(feelsProvider.notifier)
+                      .selectMood(mood['label'] as String);
                 },
                 child: Container(
                   width: 75,
@@ -541,11 +611,11 @@ class _FeelsPageState extends ConsumerState<FeelsPage>
                   decoration: BoxDecoration(
                     gradient: isSelected
                         ? LinearGradient(
-                      colors: [
-                        mood['color'] as Color,
-                        (mood['color'] as Color).withValues(alpha: 0.7),
-                      ],
-                    )
+                            colors: [
+                              mood['color'] as Color,
+                              (mood['color'] as Color).withValues(alpha: 0.7),
+                            ],
+                          )
                         : null,
                     color: isSelected
                         ? null
@@ -554,10 +624,9 @@ class _FeelsPageState extends ConsumerState<FeelsPage>
                     border: Border.all(
                       color: isSelected
                           ? Colors.transparent
-                          : Theme.of(context)
-                          .colorScheme
-                          .outline
-                          .withValues(alpha: 0.2),
+                          : Theme.of(
+                              context,
+                            ).colorScheme.outline.withValues(alpha: 0.2),
                       width: 1.5,
                     ),
                   ),
@@ -619,40 +688,44 @@ class _FeelsPageState extends ConsumerState<FeelsPage>
                 Expanded(
                   child: isAiLoading
                       ? Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'YET AI düşünüyor...',
-                        style: TextStyle(
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
-                          fontStyle: FontStyle.italic,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      LinearProgressIndicator(
-                        backgroundColor: AppColors.primary.withValues(alpha: 0.1),
-                        color: AppColors.primary,
-                        minHeight: 2,
-                      ),
-                    ],
-                  )
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'YET AI düşünüyor...',
+                              style: TextStyle(
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onSurfaceVariant,
+                                fontStyle: FontStyle.italic,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            LinearProgressIndicator(
+                              backgroundColor: AppColors.primary.withValues(
+                                alpha: 0.1,
+                              ),
+                              color: AppColors.primary,
+                              minHeight: 2,
+                            ),
+                          ],
+                        )
                       : DefaultTextStyle(
-                    style: TextStyle(
-                      color: Theme.of(context).colorScheme.onSurface,
-                      fontSize: 14,
-                      height: 1.4,
-                    ),
-                    child: AnimatedTextKit(
-                      animatedTexts: [
-                        TypewriterAnimatedText(
-                          aiMessage ?? '',
-                          speed: const Duration(milliseconds: 50),
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.onSurface,
+                            fontSize: 14,
+                            height: 1.4,
+                          ),
+                          child: AnimatedTextKit(
+                            animatedTexts: [
+                              TypewriterAnimatedText(
+                                aiMessage ?? '',
+                                speed: const Duration(milliseconds: 50),
+                              ),
+                            ],
+                            totalRepeatCount: 1,
+                            displayFullTextOnTap: true,
+                          ),
                         ),
-                      ],
-                      totalRepeatCount: 1,
-                      displayFullTextOnTap: true,
-                    ),
-                  ),
                 ),
               ],
             ),
@@ -668,9 +741,59 @@ class _FeelsPageState extends ConsumerState<FeelsPage>
   Widget _buildDailyMissions(BuildContext context) {
     final feelsState = ref.watch(feelsProvider);
     final missions = feelsState.dailyMissions;
+    final completedCount = feelsState.completedMissionsCount;
+    final totalCount = feelsState.totalMissionsCount;
 
-    if (missions.isEmpty) {
+    if (totalCount == 0) {
       return const SizedBox.shrink();
+    }
+
+    // Hepsi tamamlandıysa kutlama kartı göster
+    if (missions.isEmpty) {
+      return Padding(
+        padding: const EdgeInsets.fromLTRB(16, 24, 16, 12),
+        child: Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: Colors.green.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: Colors.green.withValues(alpha: 0.3)),
+          ),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: Colors.green.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(Icons.celebration, color: Colors.green, size: 24),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Bugünlük görevlerin bitti! 🎉',
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      '$completedCount görev tamamladın, yarın yeni görevler seni bekliyor.',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
     }
 
     return Column(
@@ -688,6 +811,24 @@ class _FeelsPageState extends ConsumerState<FeelsPage>
                   fontWeight: FontWeight.bold,
                 ),
               ),
+              if (completedCount > 0) ...[
+                const SizedBox(width: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: Colors.green.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    '$completedCount tamamlandı',
+                    style: const TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.green,
+                    ),
+                  ),
+                ),
+              ],
             ],
           ),
         ),
@@ -733,18 +874,11 @@ class _FeelsPageState extends ConsumerState<FeelsPage>
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
               gradient: LinearGradient(
-                colors: [
-                  color,
-                  color.withValues(alpha: 0.7),
-                ],
+                colors: [color, color.withValues(alpha: 0.7)],
               ),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: Icon(
-              icon,
-              color: Colors.white,
-              size: 24,
-            ),
+            child: Icon(icon, color: Colors.white, size: 24),
           ),
           const SizedBox(width: 16),
           Expanded(
@@ -787,8 +921,9 @@ class _FeelsPageState extends ConsumerState<FeelsPage>
                   child: LinearProgressIndicator(
                     value: progress,
                     minHeight: 6,
-                    backgroundColor:
-                    Theme.of(context).colorScheme.surfaceContainerHigh,
+                    backgroundColor: Theme.of(
+                      context,
+                    ).colorScheme.surfaceContainerHigh,
                     valueColor: AlwaysStoppedAnimation(color),
                   ),
                 ),
@@ -903,7 +1038,7 @@ class _FeelsPageState extends ConsumerState<FeelsPage>
         break;
 
       default:
-      // 'none' → hiçbir şey yapma
+        // 'none' → hiçbir şey yapma
         break;
     }
   }
@@ -1013,334 +1148,233 @@ class _FeelsPageState extends ConsumerState<FeelsPage>
   // 🎁 WEEKLY REWARDS
   // ============================================================================
 
-  Widget _buildWeeklyRewards(BuildContext context) {
-    final feelsState = ref.watch(feelsProvider);
-    final currentPoints = feelsState.weeklyPoints;
-    final targetPoints = feelsState.weeklyPointsTarget;
-    final progress = (currentPoints / targetPoints).clamp(0.0, 1.0);
+  // ============================================================================
+  // 📸 DAILY PHOTO CHALLENGE & 🎉 LIVE EVENTS % 🎲 RANDOM DISCOVERY
+  // ============================================================================
 
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFFB06AB3), Color(0xFF4568DC)],
+  Widget _buildQuickActions(BuildContext context) {
+    final challengeState = ref.watch(dailyChallengeProvider);
+    final challenge = challengeState.challenge;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 24, 16, 12),
+          child: Row(
+            children: [
+              const Icon(Icons.bolt, color: AppColors.primary, size: 24),
+              const SizedBox(width: 8),
+              Text(
+                'Hızlı Aksiyonlar',
+                style: Theme.of(
+                  context,
+                ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+              ),
+            ],
+          ),
         ),
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFFB06AB3).withValues(alpha: 0.3),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.2),
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: const Icon(
-              Icons.card_giftcard,
-              size: 36,
-              color: Colors.white,
-            ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Haftalık Ödül',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
+        SizedBox(
+          height: 170,
+          child: ListView(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            scrollDirection: Axis.horizontal,
+            children: [
+              if (challenge != null)
+                _buildActionCard(
+                  context: context,
+                  gradient: const LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [Color(0xFFFF512F), Color(0xFFDD2476)],
                   ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  '$currentPoints/$targetPoints puan - ${currentPoints >= targetPoints ? 'Tebrikler! 🎉' : 'Rozet kazan!'}',
-                  style: TextStyle(
-                    color: Colors.white.withValues(alpha: 0.9),
-                    fontSize: 13,
+                  icon: Text(
+                    challenge.themeEmoji,
+                    style: const TextStyle(fontSize: 26),
                   ),
+                  title: 'Günün Challenge\'ı',
+                  subtitle: challenge.themeTitle,
+                  footer:
+                      '${challengeState.participantCount} katılım · +${challenge.rewardPoints} XP',
+                  badge: challengeState.hasParticipated ? 'KATILDIN' : null,
+                  badgeColor: Colors.green,
+                  onTap: () {
+                    HapticFeedback.mediumImpact();
+                    Navigator.of(context).pushNamed(AppRoutes.createPost);
+                    Utils.showSnackBar(
+                      text:
+                          'Etikete #${challenge.tagName} ekleyerek katıl! ${challenge.themeEmoji}',
+                      isError: false,
+                    );
+                  },
                 ),
-              ],
-            ),
+              _buildActionCard(
+                context: context,
+                gradient: const LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [Color(0xFF2E3192), Color(0xFF1BFFFF)],
+                ),
+                icon: const Icon(Icons.circle, color: Colors.white, size: 22),
+                title: 'Canlı Etkinlik',
+                subtitle: 'Haftalık Soru-Cevap',
+                footer: '156 kişi izliyor',
+                badge: 'CANLI',
+                badgeColor: Colors.red,
+                onTap: () {
+                  HapticFeedback.mediumImpact();
+                  // TODO: Canlı etkinliğe katılma akışı buraya
+                },
+              ),
+              _buildActionCard(
+                context: context,
+                gradient: const LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [AppColors.primary, AppColors.primaryDark],
+                ),
+                icon: const Icon(
+                  Icons.shuffle_rounded,
+                  color: Colors.white,
+                  size: 24,
+                ),
+                title: 'Rastgele Keşfet',
+                subtitle: 'Şansını dene',
+                footer: 'Yeni bir gönderi bul',
+                onTap: () async {
+                  HapticFeedback.mediumImpact();
+                  final repository = ref.read(postRepositoryProvider);
+                  final post = await repository.getRandomPost();
+
+                  if (!context.mounted) return;
+
+                  if (post != null) {
+                    NavigationService.toNamed(
+                      AppRoutes.detailedPost,
+                      arguments: {'post': post},
+                    );
+                  } else {
+                    Utils.showSnackBar(
+                      text: 'Henüz gösterilecek gönderi yok',
+                      isError: true,
+                    );
+                  }
+                },
+              ),
+            ],
           ),
-          SizedBox(
-            width: 48,
-            height: 48,
-            child: CircularProgressIndicator(
-              value: progress,
-              backgroundColor: Colors.white.withValues(alpha: 0.3),
-              valueColor: const AlwaysStoppedAnimation(Colors.white),
-              strokeWidth: 4,
-            ),
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
-  // ============================================================================
-  // 📸 DAILY PHOTO CHALLENGE
-  // ============================================================================
-
-  Widget _buildDailyPhotoChallenge(BuildContext context) {
-    final state = ref.watch(dailyChallengeProvider);
-    final challenge = state.challenge;
-
-    if (state.isLoading && challenge == null) {
-      return const SizedBox(
-        height: 90,
-        child: Center(child: CircularProgressIndicator()),
-      );
-    }
-
-    if (challenge == null) {
-      return const SizedBox.shrink();
-    }
-
+  Widget _buildActionCard({
+    required BuildContext context,
+    required Gradient gradient,
+    required Widget icon,
+    required String title,
+    required String subtitle,
+    required String footer,
+    String? badge,
+    Color? badgeColor,
+    required VoidCallback onTap,
+  }) {
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      width: 170,
+      margin: const EdgeInsets.only(right: 12),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFFFF512F), Color(0xFFDD2476)],
-        ),
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFFFF512F).withValues(alpha: 0.3),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
+            color: Colors.black.withValues(alpha: 0.15),
+            offset: const Offset(0, 6),
+            blurRadius: 16,
           ),
         ],
       ),
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          onTap: () {
-            HapticFeedback.mediumImpact();
-            Navigator.of(context).pushNamed(AppRoutes.createPost);
-            Utils.showSnackBar(
-              text: 'Etikete #${challenge.tagName} ekleyerek katıl! 🌅',
-              isError: false,
-            );
-          },
+          onTap: onTap,
           borderRadius: BorderRadius.circular(20),
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.2),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Text(
-                    challenge.themeEmoji,
-                    style: const TextStyle(fontSize: 28),
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+          child: Ink(
+            decoration: BoxDecoration(
+              gradient: gradient,
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Row(
-                        children: [
-                          const Text(
-                            'Günün Challenge\'ı',
-                            style: TextStyle(
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.2),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: icon,
+                      ),
+                      if (badge != null)
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: badgeColor ?? Colors.red,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            badge,
+                            style: const TextStyle(
                               color: Colors.white,
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
+                              fontSize: 9,
+                              fontWeight: FontWeight.w900,
                             ),
                           ),
-                          if (state.hasParticipated) ...[
-                            const SizedBox(width: 6),
-                            const Icon(
-                              Icons.check_circle,
-                              color: Colors.white,
-                              size: 16,
-                            ),
-                          ],
-                        ],
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'Tema: ${challenge.themeTitle} ${challenge.themeEmoji}',
-                        style: const TextStyle(
-                          color: Colors.white70,
-                          fontSize: 13,
                         ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        '${state.participantCount} kişi katıldı · +${challenge.rewardPoints} XP',
-                        style: TextStyle(
-                          color: Colors.white.withValues(alpha: 0.8),
-                          fontSize: 11,
-                        ),
-                      ),
                     ],
                   ),
-                ),
-                Icon(
-                  Icons.arrow_forward_ios,
-                  color: Colors.white.withValues(alpha: 0.7),
-                  size: 18,
-                ),
-              ],
+                  const Spacer(),
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    subtitle,
+                    style: TextStyle(
+                      color: Colors.white.withValues(alpha: 0.85),
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    footer,
+                    style: TextStyle(
+                      color: Colors.white.withValues(alpha: 0.7),
+                      fontSize: 10,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
             ),
           ),
-        ),
-      ),
-    );
-  }
-
-  // ============================================================================
-  // 🎉 LIVE EVENTS
-  // ============================================================================
-
-  Widget _buildLiveEvents(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFF2E3192), Color(0xFF1BFFFF)],
-        ),
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFF2E3192).withValues(alpha: 0.3),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: () {
-            HapticFeedback.mediumImpact();
-            // TODO: Join live event
-          },
-          borderRadius: BorderRadius.circular(20),
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.red,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: const Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(Icons.circle, color: Colors.white, size: 8),
-                          SizedBox(width: 4),
-                          Text(
-                            'CANLI',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 11,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const Spacer(),
-                    Text(
-                      '156 kişi izliyor',
-                      style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.8),
-                        fontSize: 12,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                const Text(
-                  'Haftalık Soru-Cevap',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  'Moderatörlerimizle canlı sohbet!',
-                  style: TextStyle(
-                    color: Colors.white.withValues(alpha: 0.8),
-                    fontSize: 13,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  // ============================================================================
-  // 🎲 RANDOM DISCOVERY
-  // ============================================================================
-
-  Widget _buildRandomDiscovery(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: ElevatedButton.icon(
-        onPressed: () async {
-          HapticFeedback.mediumImpact();
-          final repository = ref.read(postRepositoryProvider);
-          final post = await repository.getRandomPost();
-
-          if (!context.mounted) return;
-
-          if (post != null) {
-            NavigationService.toNamed(
-              AppRoutes.detailedPost,
-              arguments: {'post': post},
-            );
-          } else {
-            Utils.showSnackBar(
-              text: 'Henüz gösterilecek gönderi yok',
-              isError: true,
-            );
-          }
-        },
-        icon: const Icon(Icons.shuffle_rounded, size: 28),
-        label: const Text(
-          'Şansını Dene - Rastgele Keşfet',
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-        ),
-        style: ElevatedButton.styleFrom(
-          padding: const EdgeInsets.symmetric(vertical: 18),
-          backgroundColor: AppColors.primary,
-          foregroundColor: Colors.white,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          elevation: 4,
         ),
       ),
     );
@@ -1371,9 +1405,9 @@ class _FeelsPageState extends ConsumerState<FeelsPage>
               const SizedBox(width: 8),
               Text(
                 '🎮 Mini Oyunlar',
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
+                style: Theme.of(
+                  context,
+                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
               ),
             ],
           ),
@@ -1417,9 +1451,9 @@ class _FeelsPageState extends ConsumerState<FeelsPage>
                 badge: 'YAKINDA',
                 badgeColor: Colors.orange,
                 onTap: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Çok yakında!')),
-                  );
+                  ScaffoldMessenger.of(
+                    context,
+                  ).showSnackBar(const SnackBar(content: Text('Çok yakında!')));
                 },
               ),
 
@@ -1436,9 +1470,9 @@ class _FeelsPageState extends ConsumerState<FeelsPage>
                 badge: 'YAKINDA',
                 badgeColor: Colors.blue,
                 onTap: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Çok yakında!')),
-                  );
+                  ScaffoldMessenger.of(
+                    context,
+                  ).showSnackBar(const SnackBar(content: Text('Çok yakında!')));
                 },
               ),
             ],
@@ -1465,7 +1499,7 @@ class _FeelsPageState extends ConsumerState<FeelsPage>
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.2),
+            color: Colors.black.withValues(alpha: 0.2),
             offset: const Offset(0, 8),
             blurRadius: 20,
             spreadRadius: 0,
@@ -1486,9 +1520,7 @@ class _FeelsPageState extends ConsumerState<FeelsPage>
               children: [
                 // Dekoratif pattern
                 Positioned.fill(
-                  child: CustomPaint(
-                    painter: _GameCardPatternPainter(),
-                  ),
+                  child: CustomPaint(painter: _GameCardPatternPainter()),
                 ),
 
                 // İçerik
@@ -1504,14 +1536,10 @@ class _FeelsPageState extends ConsumerState<FeelsPage>
                           Container(
                             padding: const EdgeInsets.all(12),
                             decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.3),
+                              color: Colors.white.withValues(alpha: 0.3),
                               borderRadius: BorderRadius.circular(12),
                             ),
-                            child: Icon(
-                              icon,
-                              color: Colors.white,
-                              size: 32,
-                            ),
+                            child: Icon(icon, color: Colors.white, size: 32),
                           ),
                           if (badge != null)
                             Container(
@@ -1525,7 +1553,7 @@ class _FeelsPageState extends ConsumerState<FeelsPage>
                                 boxShadow: [
                                   BoxShadow(
                                     color: (badgeColor ?? Colors.red)
-                                        .withOpacity(0.5),
+                                        .withValues(alpha: 0.5),
                                     blurRadius: 8,
                                     spreadRadius: 2,
                                   ),
@@ -1562,7 +1590,7 @@ class _FeelsPageState extends ConsumerState<FeelsPage>
                       Text(
                         subtitle,
                         style: TextStyle(
-                          color: Colors.white.withOpacity(0.9),
+                          color: Colors.white.withValues(alpha: 0.9),
                           fontSize: 13,
                           fontWeight: FontWeight.w500,
                         ),
@@ -1577,13 +1605,13 @@ class _FeelsPageState extends ConsumerState<FeelsPage>
                           vertical: 6,
                         ),
                         decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.3),
+                          color: Colors.white.withValues(alpha: 0.3),
                           borderRadius: BorderRadius.circular(20),
                         ),
-                        child: Row(
+                        child: const Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            const Text(
+                            Text(
                               'Oyna',
                               style: TextStyle(
                                 color: Colors.white,
@@ -1591,7 +1619,7 @@ class _FeelsPageState extends ConsumerState<FeelsPage>
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
-                            const SizedBox(width: 4),
+                            SizedBox(width: 4),
                             Icon(
                               Icons.arrow_forward,
                               color: Colors.white,
@@ -1611,14 +1639,13 @@ class _FeelsPageState extends ConsumerState<FeelsPage>
     );
   }
 
-
   // ============================================================================
   // 3️⃣ WEEKLY TOP USERS
   // ============================================================================
 
   // ============================================================================
-// 3️⃣ WEEKLY TOP USERS - GÜNCELLENMIŞ
-// ============================================================================
+  // 3️⃣ WEEKLY TOP USERS - GÜNCELLENMIŞ
+  // ============================================================================
   Widget _buildWeeklyTopUsers(BuildContext context) {
     final featuredAsync = ref.watch(featuredUsersProvider);
 
@@ -1642,17 +1669,6 @@ class _FeelsPageState extends ConsumerState<FeelsPage>
                   ),
                 ],
               ),
-              TextButton(
-                onPressed: () {
-                  HapticFeedback.selectionClick();
-                  // TODO: Navigate to full leaderboard
-                  Utils.showSnackBar(
-                    text: 'Tam liste yakında gelecek!',
-                    isError: false,
-                  );
-                },
-                child: const Text('Tümünü Gör'),
-              ),
             ],
           ),
         ),
@@ -1661,9 +1677,7 @@ class _FeelsPageState extends ConsumerState<FeelsPage>
             if (users.isEmpty) {
               return const Padding(
                 padding: EdgeInsets.all(32),
-                child: Center(
-                  child: Text('Henüz öne çıkan kullanıcı yok'),
-                ),
+                child: Center(child: Text('Henüz öne çıkan kullanıcı yok')),
               );
             }
 
@@ -1731,20 +1745,14 @@ class _FeelsPageState extends ConsumerState<FeelsPage>
           ],
         ),
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(
-          color: gradient[0].withValues(alpha: 0.4),
-          width: 2,
-        ),
+        border: Border.all(color: gradient[0].withValues(alpha: 0.4), width: 2),
       ),
       child: Material(
         color: Colors.transparent,
         child: InkWell(
           onTap: () {
             HapticFeedback.selectionClick();
-            NavigationService.toNamed(
-              AppRoutes.profile,
-              arguments: user.id,
-            );
+            NavigationService.toNamed(AppRoutes.profile, arguments: user.id);
           },
           borderRadius: BorderRadius.circular(24),
           child: Padding(
@@ -1756,7 +1764,7 @@ class _FeelsPageState extends ConsumerState<FeelsPage>
                 Container(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 10, // 12'den 10'a
-                    vertical: 4,    // 6'dan 4'e
+                    vertical: 4, // 6'dan 4'e
                   ),
                   decoration: BoxDecoration(
                     gradient: LinearGradient(colors: gradient),
@@ -1789,7 +1797,6 @@ class _FeelsPageState extends ConsumerState<FeelsPage>
                   ),
                 ),
                 const SizedBox(height: 12), // 16'dan 12'ye
-
                 // Profile Image
                 Stack(
                   children: [
@@ -1810,18 +1817,18 @@ class _FeelsPageState extends ConsumerState<FeelsPage>
                         radius: 40, // 45'den 40'a düşürdük
                         backgroundImage: user.profileImageUrl != null
                             ? CachedNetworkImageProvider(
-                          user.profileImageUrl!,
-                          cacheManager: CustomImageCacheManager(),
-                        )
+                                user.profileImageUrl!,
+                                cacheManager: CustomImageCacheManager(),
+                              )
                             : null,
                         child: user.profileImageUrl == null
                             ? Text(
-                          user.fullName[0].toUpperCase(),
-                          style: const TextStyle(
-                            fontSize: 28, // 32'den 28'e
-                            fontWeight: FontWeight.bold,
-                          ),
-                        )
+                                user.fullName[0].toUpperCase(),
+                                style: const TextStyle(
+                                  fontSize: 28, // 32'den 28'e
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              )
                             : null,
                       ),
                     ),
@@ -1848,7 +1855,6 @@ class _FeelsPageState extends ConsumerState<FeelsPage>
                   ],
                 ),
                 const SizedBox(height: 10), // 12'den 10'a
-
                 // User Info
                 Text(
                   user.fullName,
@@ -1864,10 +1870,9 @@ class _FeelsPageState extends ConsumerState<FeelsPage>
                 Text(
                   '@${user.userName}',
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Theme.of(context)
-                        .colorScheme
-                        .onSurface
-                        .withValues(alpha: 0.6),
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.onSurface.withValues(alpha: 0.6),
                     fontSize: 11, // ✅ Küçülttük
                   ),
                   maxLines: 1,
@@ -1875,7 +1880,6 @@ class _FeelsPageState extends ConsumerState<FeelsPage>
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 12), // ✅ Spacer yerine fixed height
-
                 // Stats
                 Container(
                   padding: const EdgeInsets.symmetric(
@@ -1883,10 +1887,9 @@ class _FeelsPageState extends ConsumerState<FeelsPage>
                     vertical: 8,
                   ),
                   decoration: BoxDecoration(
-                    color: Theme.of(context)
-                        .colorScheme
-                        .surface
-                        .withValues(alpha: 0.5),
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.surface.withValues(alpha: 0.5),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Row(
@@ -1901,10 +1904,9 @@ class _FeelsPageState extends ConsumerState<FeelsPage>
                       Container(
                         width: 1,
                         height: 25,
-                        color: Theme.of(context)
-                            .colorScheme
-                            .outline
-                            .withValues(alpha: 0.2),
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.outline.withValues(alpha: 0.2),
                       ),
                       _buildStatItem(
                         '${user.following.length}',
@@ -1923,7 +1925,12 @@ class _FeelsPageState extends ConsumerState<FeelsPage>
     );
   }
 
-  Widget _buildStatItem(String value, String label, IconData icon, Color color) {
+  Widget _buildStatItem(
+    String value,
+    String label,
+    IconData icon,
+    Color color,
+  ) {
     return Expanded(
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -1954,236 +1961,70 @@ class _FeelsPageState extends ConsumerState<FeelsPage>
     );
   }
 
-
   // ============================================================================
   // 🏆 LEADERBOARD
   // ============================================================================
 
   Widget _buildLeaderboard(BuildContext context) {
-    final currentUser = ref.watch(userProvider).currentUser;
     final feelsState = ref.watch(feelsProvider);
+    final theme = Theme.of(context);
     final position = feelsState.leaderboardPosition;
     final weeklyPoints = feelsState.leaderboardWeeklyPoints ?? feelsState.weeklyPoints;
 
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      padding: const EdgeInsets.all(20),
+      margin: const EdgeInsets.fromLTRB(16, 24, 16, 0),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFFFFD89B), Color(0xFF19547B)],
-        ),
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFFFFD89B).withValues(alpha: 0.3),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        color: theme.colorScheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: theme.colorScheme.outline.withValues(alpha: 0.1)),
       ),
-      child: Column(
-        children: [
-          Row(
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(18),
+          onTap: () {
+            HapticFeedback.mediumImpact();
+            Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const LeaderboardPage()),
+            );
+          },
+          child: Row(
             children: [
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.2),
+                  color: Colors.amber.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: const Icon(
-                  Icons.emoji_events,
-                  color: Colors.white,
-                  size: 28,
-                ),
+                child: const Icon(Icons.emoji_events, color: Colors.amber, size: 24),
               ),
-              const SizedBox(width: 16),
+              const SizedBox(width: 14),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
+                    Text(
                       'Liderlik Tablosu',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
+                      style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
                     ),
+                    const SizedBox(height: 2),
                     Text(
                       position != null
-                      ? 'Bu hafta $weeklyPoints puanla #$position. sıradasın'
+                          ? 'Bu hafta $weeklyPoints puanla #$position. sıradasın'
                           : 'Bu hafta henüz puan kazanmadın',
-                      style: const TextStyle(color: Colors.white70, fontSize: 13),
-                    ),
-                  ],
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 8,
-                ),
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.2),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(Icons.trending_up, color: Colors.white, size: 20),
-                    const SizedBox(width: 6),
-                    Text(
-                      position != null ? '#$position' : '-',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
                       ),
                     ),
                   ],
                 ),
               ),
+              Icon(Icons.arrow_forward_ios, size: 16, color: theme.colorScheme.outline),
             ],
           ),
-          const SizedBox(height: 16),
-          ElevatedButton(
-            onPressed: () {
-              HapticFeedback.mediumImpact();
-              Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const LeaderboardPage()),
-              );
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.white,
-              foregroundColor: const Color(0xFF19547B),
-              minimumSize: const Size(double.infinity, 45),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(14),
-              ),
-            ),
-            child: const Text(
-              'Tüm Sıralamayı Gör',
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPodiumView() {
-    // TODO: Bu veriler API'dan gelecek
-    final topUsers = [
-      {'name': 'Ahmet Y.', 'points': 1250, 'rank': 2},
-      {'name': 'Mehmet K.', 'points': 1580, 'rank': 1},
-      {'name': 'Ayşe D.', 'points': 980, 'rank': 3},
-    ];
-
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16),
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            Theme.of(context).colorScheme.surfaceContainerHighest,
-            Theme.of(context).colorScheme.surfaceContainerHigh,
-          ],
-        ),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.1),
         ),
       ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: [
-          _buildPodiumPlace(topUsers[0], 2),
-          _buildPodiumPlace(topUsers[1], 1),
-          _buildPodiumPlace(topUsers[2], 3),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPodiumPlace(Map<String, dynamic> user, int rank) {
-    final colors = rank == 1
-        ? [const Color(0xFFFFD700), const Color(0xFFFFAA00)]
-        : rank == 2
-        ? [const Color(0xFFC0C0C0), const Color(0xFF999999)]
-        : [const Color(0xFFCD7F32), const Color(0xFF8B4513)];
-
-    final height = rank == 1
-        ? 100.0
-        : rank == 2
-        ? 80.0
-        : 70.0;
-
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Container(
-          width: 50,
-          height: 50,
-          decoration: BoxDecoration(
-            gradient: LinearGradient(colors: colors),
-            shape: BoxShape.circle,
-            border: Border.all(color: Colors.white, width: 2),
-          ),
-          child: Center(
-            child: Text(
-              user['name'].toString().substring(0, 1),
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          user['name'] as String,
-          style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 12),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          '${user['points']} XP',
-          style: TextStyle(
-            fontSize: 11,
-            color: Theme.of(context).colorScheme.onSurfaceVariant,
-          ),
-        ),
-        const SizedBox(height: 8),
-        Container(
-          width: 60,
-          height: height,
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [
-                colors[0].withValues(alpha: 0.7),
-                colors[1].withValues(alpha: 0.7),
-              ],
-            ),
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(8)),
-          ),
-          child: Center(
-            child: Text(
-              '#$rank',
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
-        ),
-      ],
     );
   }
 
@@ -2200,33 +2041,6 @@ class _FeelsPageState extends ConsumerState<FeelsPage>
       return const SizedBox.shrink();
     }
 
-    final stats = [
-      {
-        'label': 'Gönderiler',
-        'value': userStats['posts']?.toString() ?? '0',
-        'icon': Icons.photo_library,
-        'color': const Color(0xFF667eea),
-      },
-      {
-        'label': 'Beğeniler',
-        'value': userStats['likes']?.toString() ?? '0',
-        'icon': Icons.favorite,
-        'color': const Color(0xFFFF6B6B),
-      },
-      {
-        'label': 'Takipçi',
-        'value': userStats['followers']?.toString() ?? '0',
-        'icon': Icons.people,
-        'color': const Color(0xFF4FACFE),
-      },
-      {
-        'label': 'Takip',
-        'value': userStats['following']?.toString() ?? '0',
-        'icon': Icons.person_add,
-        'color': const Color(0xFFB06AB3),
-      },
-    ];
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -2237,7 +2051,7 @@ class _FeelsPageState extends ConsumerState<FeelsPage>
             children: [
               Row(
                 children: [
-                  const Icon(Icons.analytics, color: AppColors.primary, size: 26),
+                  const Icon(Icons.analytics, color: AppColors.primary, size: 24),
                   const SizedBox(width: 8),
                   Text(
                     'İstatistiklerim',
@@ -2251,160 +2065,80 @@ class _FeelsPageState extends ConsumerState<FeelsPage>
                 onPressed: () {
                   HapticFeedback.selectionClick();
                   if (currentUser != null) {
-                    NavigationService.toNamed(
-                      AppRoutes.profile,
-                      arguments: currentUser.id,
-                    );
+                    NavigationService.toNamed(AppRoutes.profile, arguments: currentUser.id);
                   }
                 },
-                icon: const Icon(Icons.arrow_forward_ios, size: 14),
-                label: const Text('Profil'),
-                style: TextButton.styleFrom(
-                  foregroundColor: AppColors.primary,
-                ),
+                icon: const Icon(Icons.arrow_forward, size: 16),
+                label: const Text('Profilim'),
               ),
             ],
           ),
         ),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: GridView.count(
-            crossAxisCount: 2,
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            mainAxisSpacing: 12,
-            crossAxisSpacing: 12,
-            childAspectRatio: 1.5,
-            children: stats.map((stat) {
-              return TweenAnimationBuilder(
-                tween: Tween<double>(begin: 0, end: 1),
-                duration: Duration(milliseconds: 300 + (stats.indexOf(stat) * 100)),
-                curve: Curves.easeOutCubic,
-                builder: (context, value, child) {
-                  return Transform.scale(
-                    scale: value,
-                    child: Opacity(
-                      opacity: value,
-                      child: child,
-                    ),
-                  );
-                },
-                child: Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [
-                        (stat['color'] as Color).withValues(alpha: 0.15),
-                        (stat['color'] as Color).withValues(alpha: 0.05),
-                      ],
-                    ),
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(
-                      color: (stat['color'] as Color).withValues(alpha: 0.3),
-                      width: 1.5,
-                    ),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Icon(
-                        stat['icon'] as IconData,
-                        color: stat['color'] as Color,
-                        size: 28,
-                      ),
-                      const Spacer(),
-                      Text(
-                        stat['value'] as String,
-                        style: TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                          color: stat['color'] as Color,
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        stat['label'] as String,
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Theme.of(context)
-                              .colorScheme
-                              .onSurface
-                              .withValues(alpha: 0.6),
-                        ),
-                      ),
-                    ],
-                  ),
+          child: Row(
+            children: [
+              Expanded(
+                child: _buildStatChip(
+                  context: context,
+                  icon: Icons.photo_library,
+                  accentColor: const Color(0xFF667eea),
+                  value: userStats['posts']?.toString() ?? '0',
+                  label: 'Gönderi',
+                  onTap: () {},
                 ),
-              );
-            }).toList(),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: _buildStatChip(
+                  context: context,
+                  icon: Icons.favorite,
+                  accentColor: const Color(0xFFFF6B6B),
+                  value: userStats['likes']?.toString() ?? '0',
+                  label: 'Beğeni',
+                  onTap: () {},
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: _buildStatChip(
+                  context: context,
+                  icon: Icons.people,
+                  accentColor: const Color(0xFF4FACFE),
+                  value: userStats['followers']?.toString() ?? '0',
+                  label: 'Takipçi',
+                  onTap: () {
+                    if (currentUser != null) {
+                      NavigationService.toNamed(
+                        AppRoutes.followList,
+                        arguments: {'userId': currentUser.id, 'initialTabIndex': 0},
+                      );
+                    }
+                  },
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: _buildStatChip(
+                  context: context,
+                  icon: Icons.person_add,
+                  accentColor: const Color(0xFFB06AB3),
+                  value: userStats['following']?.toString() ?? '0',
+                  label: 'Takip',
+                  onTap: () {
+                    if (currentUser != null) {
+                      NavigationService.toNamed(
+                        AppRoutes.followList,
+                        arguments: {'userId': currentUser.id, 'initialTabIndex': 1},
+                      );
+                    }
+                  },
+                ),
+              ),
+            ],
           ),
         ),
       ],
-    );
-  }
-
-  Widget _buildStatCard(
-    String title,
-    String value,
-    IconData icon,
-    List<Color> gradient,
-  ) {
-    return Container(
-      padding: const EdgeInsets.all(8),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            gradient[0].withValues(alpha: 0.15),
-            gradient[1].withValues(alpha: 0.15),
-          ],
-        ),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: gradient[0].withValues(alpha: 0.3),
-          width: 1.5,
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(colors: gradient),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Icon(icon, color: Colors.white, size: 20),
-              ),
-            ],
-          ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                value,
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: gradient[0],
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                title,
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
     );
   }
 
@@ -2425,7 +2159,11 @@ class _FeelsPageState extends ConsumerState<FeelsPage>
             children: [
               Row(
                 children: [
-                  const Icon(Icons.trending_up, color: AppColors.primary, size: 26),
+                  const Icon(
+                    Icons.trending_up,
+                    color: AppColors.primary,
+                    size: 26,
+                  ),
                   const SizedBox(width: 8),
                   Text(
                     'Trendler',
@@ -2436,7 +2174,10 @@ class _FeelsPageState extends ConsumerState<FeelsPage>
                 ],
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 6,
+                ),
                 decoration: BoxDecoration(
                   color: AppColors.primary.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(20),
@@ -2444,7 +2185,11 @@ class _FeelsPageState extends ConsumerState<FeelsPage>
                 child: const Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.local_fire_department, size: 14, color: AppColors.primary),
+                    Icon(
+                      Icons.local_fire_department,
+                      size: 14,
+                      color: AppColors.primary,
+                    ),
                     SizedBox(width: 4),
                     Text(
                       'Popüler',
@@ -2513,39 +2258,20 @@ class _FeelsPageState extends ConsumerState<FeelsPage>
   }
 
   Widget _buildPopularTagChip(String tag, int count, int index) {
-    final colors = [
-      [const Color(0xFFFF6B6B), const Color(0xFFFFE66D)],
-      [const Color(0xFF4FACFE), const Color(0xFF00F2FE)],
-      [const Color(0xFFB06AB3), const Color(0xFF4568DC)],
-      [const Color(0xFFFF512F), const Color(0xFFDD2476)],
-      [const Color(0xFF2E3192), const Color(0xFF1BFFFF)],
-    ];
-
-    final gradient = colors[index % colors.length];
+    final opacity = (0.18 - (index * 0.012)).clamp(0.06, 0.18);
 
     return Container(
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            gradient[0].withValues(alpha: 0.15),
-            gradient[1].withValues(alpha: 0.15),
-          ],
-        ),
+        color: AppColors.primary.withValues(alpha: opacity),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: gradient[0].withValues(alpha: 0.4),
-          width: 1.5,
-        ),
+        border: Border.all(color: AppColors.primary.withValues(alpha: 0.25)),
       ),
       child: Material(
         color: Colors.transparent,
         child: InkWell(
           onTap: () {
             HapticFeedback.selectionClick();
-            NavigationService.toNamed(
-              AppRoutes.tagPosts,
-              arguments: {'tag': tag},
-            );
+            NavigationService.toNamed(AppRoutes.tagPosts, arguments: {'tag': tag});
           },
           borderRadius: BorderRadius.circular(16),
           child: Padding(
@@ -2555,26 +2281,23 @@ class _FeelsPageState extends ConsumerState<FeelsPage>
               children: [
                 Text(
                   '#$tag',
-                  style: TextStyle(
-                    color: gradient[0],
+                  style: const TextStyle(
+                    color: AppColors.primary,
                     fontWeight: FontWeight.w600,
                     fontSize: 14,
                   ),
                 ),
                 const SizedBox(width: 6),
                 Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 6,
-                    vertical: 2,
-                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                   decoration: BoxDecoration(
-                    color: gradient[0].withValues(alpha: 0.2),
+                    color: AppColors.primary.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
                     '$count',
-                    style: TextStyle(
-                      color: gradient[0],
+                    style: const TextStyle(
+                      color: AppColors.primary,
                       fontSize: 11,
                       fontWeight: FontWeight.bold,
                     ),
@@ -2683,7 +2406,7 @@ class _GameCardPatternPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = Colors.white.withOpacity(0.1)
+      ..color = Colors.white.withValues(alpha: 0.1)
       ..style = PaintingStyle.fill;
 
     const spacing = 15.0;

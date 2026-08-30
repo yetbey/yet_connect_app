@@ -12,6 +12,7 @@ import 'package:yet_x_app/features/feed/data/post_repository.dart';
 import 'package:yet_x_app/core/utils/error_handler.dart';
 import 'package:yet_x_app/core/utils/utils.dart';
 import 'package:yet_x_app/features/feels/presentation/providers/feels_provider.dart';
+import 'package:yet_x_app/features/gamification/presentation/providers/daily_challenge_provider.dart';
 import 'package:yet_x_app/features/gamification/presentation/providers/points_provider.dart';
 import 'package:yet_x_app/generated/locale_keys.g.dart';
 import 'package:yet_x_app/features/gamification/data/services/activity_tracker.dart';
@@ -349,7 +350,8 @@ class PostActionsNotifier extends Notifier<bool> {
         tagCount: tags?.length,
       );
 
-      await ActivityTracker.onPostCreated();
+      await ActivityTracker.onPostCreated(tags: tags);
+      ref.read(dailyChallengeProvider.notifier).refresh();
 
       ref.read(pointsProvider.notifier).refreshPoints();
       ref.read(feelsProvider.notifier).refresh();

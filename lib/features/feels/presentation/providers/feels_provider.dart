@@ -25,6 +25,8 @@ class FeelsState {
   final Map<String, dynamic>? userStats;
   final bool isLoading;
   final String? error;
+  final int completedMissionsCount;
+  final int totalMissionsCount;
 
   const FeelsState({
     this.currentStreak = 0,
@@ -41,6 +43,8 @@ class FeelsState {
     this.userStats,
     this.isLoading = false,
     this.error,
+    this.completedMissionsCount = 0,
+    this.totalMissionsCount = 0,
   });
 
   FeelsState copyWith({
@@ -58,6 +62,8 @@ class FeelsState {
     Map<String, dynamic>? userStats,
     bool? isLoading,
     String? error,
+    int? completedMissionsCount,
+    int? totalMissionsCount,
   }) {
     return FeelsState(
       currentStreak: currentStreak ?? this.currentStreak,
@@ -74,6 +80,8 @@ class FeelsState {
       userStats: userStats ?? this.userStats,
       isLoading: isLoading ?? this.isLoading,
       error: error,
+      completedMissionsCount: completedMissionsCount ?? this.completedMissionsCount,
+      totalMissionsCount: totalMissionsCount ?? this.totalMissionsCount,
     );
   }
 }
@@ -224,8 +232,9 @@ class FeelsNotifier extends Notifier<FeelsState> {
         userId: userId,
       );
 
-      // Görevleri state formatına çevir
-      final missionsList = missions.map((mission) {
+      final missionsList = missions
+          .where((mission) => !mission.isCompleted)
+          .map((mission) {
         return {
           'title': mission.title,
           'progress': mission.progress,
@@ -237,8 +246,12 @@ class FeelsNotifier extends Notifier<FeelsState> {
         };
       }).toList();
 
-      state = state.copyWith(dailyMissions: missionsList);
-      LogService.i('✅ Günlük görevler yüklendi (${missions.length})');
+      state = state.copyWith(
+        dailyMissions: missionsList,
+        completedMissionsCount: missions.length - missionsList.length,
+        totalMissionsCount: missions.length,
+      );
+      LogService.i('✅ Günlük görevler yüklendi (${missionsList.length}/${missions.length})');
     } catch (e) {
       LogService.e('❌ Günlük görev yükleme hatası', e);
     }

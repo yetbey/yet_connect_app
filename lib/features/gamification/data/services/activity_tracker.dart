@@ -1,16 +1,18 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:yet_x_app/core/utils/logger_service.dart';
 import 'package:yet_x_app/features/gamification/core/constants/scoring_constants.dart';
+import 'package:yet_x_app/features/gamification/data/services/daily_challenge_service.dart';
 import 'package:yet_x_app/features/gamification/data/services/points_service.dart';
 import 'package:yet_x_app/features/gamification/data/services/mission_service.dart';
 
 class ActivityTracker {
   static final _pointsService = PointsService();
   static final _missionService = MissionService();
+  static final _dailyChallengeService = DailyChallengeService();
   static final _supabase = Supabase.instance.client;
 
   /// When a post is shared
-  static Future<void> onPostCreated() async {
+  static Future<void> onPostCreated({List<String>? tags}) async {
     final userId = _supabase.auth.currentUser?.id;
     if (userId == null) return;
 
@@ -24,20 +26,62 @@ class ActivityTracker {
 
       await _missionService.updateMissionProgress(
         userId: userId,
-        missionId: 1, // "İlk Gönderi" görevi
+        missionId: 1,
         increment: 1,
       );
 
-      // Haftalık görev (20 post)
       await _missionService.updateMissionProgress(
         userId: userId,
-        missionId: 4, // "Aktif Kullanıcı" görevi
+        missionId: 4,
         increment: 1,
       );
+
+      // Günlük challenge etiketiyle eşleşiyorsa bonus puan ver
+      if (tags != null && tags.isNotEmpty) {
+        await _checkDailyChallengeReward(userId, tags);
+      }
 
       LogService.i('✅ Post aktivitesi kaydedildi: +20 XP');
     } catch (e) {
       LogService.e('❌ Post aktivite kayıt hatası', e);
+    }
+  }
+
+  static Future<void> _checkDailyChallengeReward(
+      String userId,
+      List<String> tags,
+      ) async {
+    try {
+      final challenge = await _dailyChallengeService.getTodayChallenge();
+      if (challenge == null) return;
+      if (!tags.contains(challenge.tagName)) return;
+
+      final today = DateTime.now();
+      final startOfDay = DateTime(today.year, today.month, today.day);
+
+      final existingReward = await _supabase
+          .from('point_history')
+          .select('id')
+          .eq('user_id', userId)
+          .eq('source', 'daily_challenge')
+          .gte('created_at', startOfDay.toIso8601String())
+          .limit(1);
+
+      if ((existingReward as List).isNotEmpty) {
+        LogService.i('ℹ️ Günlük challenge ödülü bugün zaten verildi');
+        return;
+      }
+
+      await _pointsService.addPoints(
+        userId: userId,
+        points: challenge.rewardPoints,
+        source: 'daily_challenge',
+        description: '${challenge.themeTitle} challenge\'ına katıldı',
+      );
+
+      LogService.i('🎉 Günlük challenge ödülü: +${challenge.rewardPoints} XP');
+    } catch (e) {
+      LogService.e('❌ Günlük challenge ödül hatası', e);
     }
   }
 
