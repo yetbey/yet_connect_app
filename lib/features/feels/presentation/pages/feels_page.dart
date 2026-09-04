@@ -19,6 +19,8 @@ import 'package:yet_x_app/core/utils/utils.dart';
 import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:yet_x_app/features/gamification/presentation/providers/announcement_provider.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:yet_x_app/features/gamification/presentation/providers/live_event_provider.dart';
+import 'package:yet_x_app/features/gamification/presentation/pages/live_event_page.dart';
 
 class FeelsPage extends ConsumerStatefulWidget {
   const FeelsPage({super.key});
@@ -1135,6 +1137,7 @@ class _FeelsPageState extends ConsumerState<FeelsPage>
   Widget _buildQuickActions(BuildContext context) {
     final challengeState = ref.watch(dailyChallengeProvider);
     final challenge = challengeState.challenge;
+    final liveEventAsync = ref.watch(liveEventProvider);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1147,9 +1150,9 @@ class _FeelsPageState extends ConsumerState<FeelsPage>
               const SizedBox(width: 8),
               Text(
                 'Hızlı Aksiyonlar',
-                style: Theme.of(
-                  context,
-                ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ],
           ),
@@ -1175,7 +1178,7 @@ class _FeelsPageState extends ConsumerState<FeelsPage>
                   title: 'Günün Challenge\'ı',
                   subtitle: challenge.themeTitle,
                   footer:
-                      '${challengeState.participantCount} katılım · +${challenge.rewardPoints} XP',
+                  '${challengeState.participantCount} katılım · +${challenge.rewardPoints} XP',
                   badge: challengeState.hasParticipated ? 'KATILDIN' : null,
                   badgeColor: Colors.green,
                   onTap: () {
@@ -1183,28 +1186,39 @@ class _FeelsPageState extends ConsumerState<FeelsPage>
                     Navigator.of(context).pushNamed(AppRoutes.createPost);
                     Utils.showSnackBar(
                       text:
-                          'Etikete #${challenge.tagName} ekleyerek katıl! ${challenge.themeEmoji}',
+                      'Etikete #${challenge.tagName} ekleyerek katıl! ${challenge.themeEmoji}',
                       isError: false,
                     );
                   },
                 ),
-              _buildActionCard(
-                context: context,
-                gradient: const LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [Color(0xFF2E3192), Color(0xFF1BFFFF)],
-                ),
-                icon: const Icon(Icons.circle, color: Colors.white, size: 22),
-                title: 'Canlı Etkinlik',
-                subtitle: 'Haftalık Soru-Cevap',
-                footer: '156 kişi izliyor',
-                badge: 'CANLI',
-                badgeColor: Colors.red,
-                onTap: () {
-                  HapticFeedback.mediumImpact();
-                  // TODO: Canlı etkinliğe katılma akışı buraya
+              liveEventAsync.when(
+                data: (event) {
+                  if (event == null) return const SizedBox.shrink();
+                  return _buildActionCard(
+                    context: context,
+                    gradient: const LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [Color(0xFF2E3192), Color(0xFF1BFFFF)],
+                    ),
+                    icon: const Icon(Icons.circle, color: Colors.white, size: 22),
+                    title: 'Canlı Etkinlik',
+                    subtitle: event.title,
+                    footer: event.hostName ?? 'Katıl ve sohbet et',
+                    badge: 'CANLI',
+                    badgeColor: Colors.red,
+                    onTap: () {
+                      HapticFeedback.mediumImpact();
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => LiveEventPage(eventId: event.id),
+                        ),
+                      );
+                    },
+                  );
                 },
+                loading: () => const SizedBox.shrink(),
+                error: (_, __) => const SizedBox.shrink(),
               ),
               _buildActionCard(
                 context: context,
@@ -1408,12 +1422,13 @@ class _FeelsPageState extends ConsumerState<FeelsPage>
                 ),
                 icon: Icons.grid_on_rounded,
                 title: 'Scrabble',
-                subtitle: '4 Kişilik Online',
-                badge: 'YENİ',
-                badgeColor: Colors.red,
+                subtitle: 'Bakımda',
+                badge: 'YAKINDA',
+                badgeColor: Colors.orange,
                 onTap: () {
-                  HapticFeedback.mediumImpact();
-                  NavigationService.toNamed(AppRoutes.scrabbleLobby);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Scrabble şu an bakımda, çok yakında geri dönüyor!')),
+                  );
                 },
               ),
 
