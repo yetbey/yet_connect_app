@@ -47,8 +47,6 @@ dependencies:
   visibility_detector: ^0.4.0+2
   smooth_page_indicator: ^2.0.1
   firebase_core: ^4.2.1
-  firebase_crashlytics: ^5.0.5
-  firebase_analytics: ^12.0.4
   shared_preferences: ^2.5.4
   pinput: ^6.0.1
   app_links: ^6.4.1
@@ -57,7 +55,6 @@ dependencies:
   google_sign_in: ^6.2.1
   flame: ^1.34.0
   flame_audio: ^2.11.12
-  firebase_database: ^12.1.1
   confetti: ^0.8.0
   sqflite_common_ffi_web: ^1.1.2
   google_generative_ai: ^0.4.7

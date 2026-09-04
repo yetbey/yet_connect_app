@@ -1,8 +1,6 @@
 // lib/core/utils/error_handler.dart
 
 import 'package:flutter/foundation.dart';
-import 'package:firebase_crashlytics/firebase_crashlytics.dart';
-import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:yet_x_app/core/utils/logger_service.dart';
 
@@ -63,8 +61,6 @@ class AppError {
 
 /// Main error handler
 class ErrorHandler {
-  static final _crashlytics = FirebaseCrashlytics.instance;
-  static final _analytics = FirebaseAnalytics.instance;
 
   // Error log cache (last 100 errors)
   static final List<AppError> _errorLog = [];
@@ -94,8 +90,6 @@ class ErrorHandler {
 
     _addToErrorLog(appError);
     _logToConsole(appError, context);
-    _reportToCrashlytics(appError);
-    _reportToAnalytics(appError);
   }
 
   /// Create AppError from any error type
@@ -147,7 +141,7 @@ class ErrorHandler {
       type: type,
       stackTrace: stackTrace,
       metadata: {
-        if (context != null) 'context': context,
+        'context': ?context,
         if (_currentUserId != null) 'userId': _currentUserId,
         if (_currentUserEmail != null) 'userEmail': _currentUserEmail,
         'errorType': error.runtimeType.toString(),
@@ -174,56 +168,6 @@ class ErrorHandler {
         error,
         error.stackTrace,
       );
-    }
-  }
-
-  /// Report to Firebase Crashlytics (production)
-  static void _reportToCrashlytics(AppError error) {
-    if (!kReleaseMode) return;
-
-    try {
-      _crashlytics.recordError(
-        error.message,
-        error.stackTrace,
-        reason: error.userAction ?? error.type.name,
-        fatal: error.severity == ErrorSeverity.critical,
-        information: [
-          if (error.code != null) 'Code: ${error.code}',
-          'Type: ${error.type.name}',
-          'Severity: ${error.severity.name}',
-          if (error.userAction != null) 'Action: ${error.userAction}',
-          if (error.metadata != null)
-            ...error.metadata!.entries.map((e) => '${e.key}: ${e.value}'),
-        ],
-      );
-    } catch (e) {
-      if (kDebugMode) {
-        debugPrint('Failed to report to Crashlytics: $e');
-      }
-    }
-  }
-
-  /// Report to Firebase Analytics (production)
-  static void _reportToAnalytics(AppError error) {
-    if (!kReleaseMode) return;
-
-    try {
-      _analytics.logEvent(
-        name: 'app_error',
-        parameters: {
-          'error_type': error.type.name,
-          'error_code': error.code ?? 'unknown',
-          'severity': error.severity.name,
-          'message': error.message.length > 100
-              ? error.message.substring(0, 100)
-              : error.message,
-          if (error.userAction != null) 'user_action': ?error.userAction,
-        },
-      );
-    } catch (e) {
-      if (kDebugMode) {
-        debugPrint('Failed to report to Analytics: $e');
-      }
     }
   }
 
@@ -328,13 +272,6 @@ class ErrorHandler {
     _currentUserId = userId;
     _currentUserEmail = email;
 
-    if (kReleaseMode) {
-      await _crashlytics.setUserIdentifier(userId);
-      if (email != null) {
-        await _crashlytics.setCustomKey('user_email', email);
-      }
-    }
-
     if (kDebugMode) {
       LogService.i('User context set: $userId');
     }
@@ -344,10 +281,6 @@ class ErrorHandler {
   static Future<void> clearUserContext() async {
     _currentUserId = null;
     _currentUserEmail = null;
-
-    if (kReleaseMode) {
-      await _crashlytics.setUserIdentifier('anonymous');
-    }
   }
 
   /// Add breadcrumb (track user flow)
@@ -356,18 +289,7 @@ class ErrorHandler {
         ? '$message | ${data.entries.map((e) => '${e.key}=${e.value}').join(', ')}'
         : message;
 
-    if (kReleaseMode) {
-      _crashlytics.log(logMessage);
-    } else {
-      LogService.d(logMessage);
-    }
-  }
-
-  /// Set custom key (for debugging)
-  static Future<void> setCustomKey(String key, dynamic value) async {
-    if (kReleaseMode) {
-      await _crashlytics.setCustomKey(key, value);
-    }
+    LogService.d(logMessage);
   }
 
   /// Check if error is network related
@@ -409,15 +331,5 @@ class ErrorHandler {
     if (kDebugMode) {
       throw Exception('Test crash from ErrorHandler');
     }
-  }
-
-  /// Force crash report (production test)
-  static Future<void> testCrashlytics() async {
-    await _crashlytics.recordError(
-      Exception('Test Crashlytics Error'),
-      StackTrace.current,
-      reason: 'Manual test',
-      fatal: false,
-    );
   }
 }

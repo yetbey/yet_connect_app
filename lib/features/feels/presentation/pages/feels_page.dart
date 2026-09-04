@@ -1,4 +1,3 @@
-import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -39,7 +38,6 @@ class _FeelsPageState extends ConsumerState<FeelsPage>
   @override
   void initState() {
     super.initState();
-    testFirebaseConnection();
     _headerAnimController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1500),
@@ -64,24 +62,6 @@ class _FeelsPageState extends ConsumerState<FeelsPage>
     _scrollController.dispose();
     _bannerController.dispose();
     super.dispose();
-  }
-
-  void testFirebaseConnection() async {
-    try {
-      final ref = FirebaseDatabase.instance.ref('test');
-      await ref.set({
-        'message': 'Scrabble test',
-        'timestamp': DateTime.now().toIso8601String(),
-      });
-      print('✅ Firebase Realtime Database çalışıyor!');
-
-      final snapshot = await ref.get();
-      if (snapshot.exists) {
-        print('📖 Okunan veri: ${snapshot.value}');
-      }
-    } catch (e) {
-      print('❌ Firebase hatası: $e');
-    }
   }
 
   @override

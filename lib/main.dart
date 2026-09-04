@@ -18,8 +18,6 @@ import 'package:yet_x_app/core/utils/logger_service.dart';
 import 'package:yet_x_app/core/utils/utils.dart';
 import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:firebase_core/firebase_core.dart';
-import 'package:firebase_crashlytics/firebase_crashlytics.dart';
-import 'package:firebase_analytics/firebase_analytics.dart';
 import 'core/services/fcm_service.dart';
 import 'firebase_options.dart';
 
@@ -50,7 +48,7 @@ void main() async {
 
         await Supabase.initialize(
           url: dotenv.env['SUPABASE_URL'] ?? '',
-          anonKey: dotenv.env['SUPABASE_ANON_KEY'] ?? '',
+          publishableKey: dotenv.env['SUPABASE_PUBLISHABLE_KEY'] ?? '',
           debug: false,
           authOptions: const FlutterAuthClientOptions(
             authFlowType: AuthFlowType.pkce,
@@ -62,7 +60,6 @@ void main() async {
         await EasyLocalization.ensureInitialized();
 
         FlutterError.onError = (FlutterErrorDetails details) {
-          FirebaseCrashlytics.instance.recordFlutterFatalError(details);
           FlutterError.presentError(details);
           LogService.e('Flutter Error: ${details.exception}');
         };
@@ -145,8 +142,6 @@ class YetXApp extends ConsumerWidget {
     final themeState = ref.watch(themeProvider);
     ref.watch(themeProvider);
 
-    final analytics = FirebaseAnalytics.instance;
-
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'YET Connect',
@@ -185,7 +180,6 @@ class YetXApp extends ConsumerWidget {
         );
       },
       navigatorObservers: [
-        FirebaseAnalyticsObserver(analytics: analytics),
         if (kDebugMode) CustomNavigatorObserver(),
       ],
     );
