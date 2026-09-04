@@ -69,10 +69,10 @@ class PointsNotifier extends Notifier<PointsState> {
 
   Future<void> _loadUserPoints() async {
     final userId = _supabase.auth.currentUser?.id;
-    print('🔍 POINTS PROVIDER: User ID: $userId');
+    LogService.i('🔍 POINTS PROVIDER: User ID: $userId');
 
     if (userId == null) {
-      print('❌ POINTS PROVIDER: User ID null!');
+      LogService.i('❌ POINTS PROVIDER: User ID null!');
       return;
     }
 
@@ -81,17 +81,17 @@ class PointsNotifier extends Notifier<PointsState> {
 
     try {
       // Rütbeleri yükle
-      print('📥 POINTS PROVIDER: Fetching ranks...');
+      LogService.i('📥 POINTS PROVIDER: Fetching ranks...');
       final ranks = await _pointsService.getAllRanks();
-      print('✅ POINTS PROVIDER: Ranks loaded: ${ranks.length}');
+      LogService.i('✅ POINTS PROVIDER: Ranks loaded: ${ranks.length}');
 
       // Kullanıcı puanlarını al
-      print('📥 POINTS PROVIDER: Fetching user points...');
+      LogService.i('📥 POINTS PROVIDER: Fetching user points...');
       final userPoints = await _pointsService.getUserPoints(userId);
-      print('✅ POINTS PROVIDER: User points: ${userPoints?.totalPoints}');
+      LogService.i('✅ POINTS PROVIDER: User points: ${userPoints?.totalPoints}');
 
       if (userPoints == null) {
-        print('⚠️ POINTS PROVIDER: User points null, creating default...');
+        LogService.i('⚠️ POINTS PROVIDER: User points null, creating default...');
 
         // ✅ Kullanıcı kaydı yoksa oluştur
         await _pointsService.addPoints(
@@ -132,7 +132,7 @@ class PointsNotifier extends Notifier<PointsState> {
           (rank) => rank.name == userPoints.rank,
       orElse: () => ranks.first,
     );
-    print('✅ POINTS PROVIDER: Current rank: ${currentRank.displayName}');
+    LogService.i('✅ POINTS PROVIDER: Current rank: ${currentRank.displayName}');
 
     // Bir sonraki rütbeyi bul
     final currentRankIndex = ranks.indexOf(currentRank);
@@ -154,7 +154,7 @@ class PointsNotifier extends Notifier<PointsState> {
       pointsToNextRank: pointsToNextRank,
     );
 
-    print('✅ POINTS PROVIDER: State updated - ${userPoints.totalPoints} XP, ${currentRank.displayName}');
+    LogService.i('✅ POINTS PROVIDER: State updated - ${userPoints.totalPoints} XP, ${currentRank.displayName}');
   }
 
   // Puanları yenile

@@ -4,9 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flame/game.dart';
+import 'package:yet_x_app/core/utils/logger_service.dart';
 import 'package:yet_x_app/features/scrabble/presentation/game/scrabble_game.dart';
 import 'package:yet_x_app/features/scrabble/presentation/providers/scrabble_provider.dart';
-import 'package:yet_x_app/core/utils/utils.dart';
 import 'dart:ui';
 import '../../core/constants/scrabble_constants.dart';
 
@@ -57,13 +57,22 @@ class _ScrabbleGameScreenState extends ConsumerState<ScrabbleGameScreen> {
       );
     }
 
-    return WillPopScope(
-      onWillPop: () async {
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (didPop) return;
+
         final shouldLeave = await _showLeaveDialog();
+
         if (shouldLeave) {
-          await ref.read(scrabbleProvider.notifier).leaveRoom(widget.userId);
+          await ref
+              .read(scrabbleProvider.notifier)
+              .leaveRoom(widget.userId);
+
+          if (context.mounted) {
+            Navigator.of(context).pop();
+          }
         }
-        return shouldLeave;
       },
       child: Scaffold(
         body: Stack(
@@ -107,7 +116,7 @@ class _ScrabbleGameScreenState extends ConsumerState<ScrabbleGameScreen> {
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
           colors: [
-            Colors.black.withOpacity(0.6),
+            Colors.black.withValues(alpha: .6),
             Colors.transparent,
           ],
         ),
@@ -126,7 +135,7 @@ class _ScrabbleGameScreenState extends ConsumerState<ScrabbleGameScreen> {
               icon: Container(
                 padding: const EdgeInsets.all(6),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
+                  color: Colors.white.withValues(alpha: .2),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: const Icon(Icons.arrow_back, color: Colors.white, size: 20),
@@ -151,11 +160,11 @@ class _ScrabbleGameScreenState extends ConsumerState<ScrabbleGameScreen> {
                       ),
                       decoration: BoxDecoration(
                         color: isCurrentTurn
-                            ? Colors.amber.withOpacity(0.3)
-                            : Colors.white.withOpacity(0.1),
+                            ? Colors.amber.withValues(alpha: .3)
+                            : Colors.white.withValues(alpha: .1),
                         borderRadius: BorderRadius.circular(10),
                         border: Border.all(
-                          color: isCurrentTurn ? Colors.amber : Colors.white.withOpacity(0.3),
+                          color: isCurrentTurn ? Colors.amber : Colors.white.withValues(alpha: .3),
                           width: 1.5,
                         ),
                       ),
@@ -200,7 +209,7 @@ class _ScrabbleGameScreenState extends ConsumerState<ScrabbleGameScreen> {
                               Text(
                                 '$score',
                                 style: TextStyle(
-                                  color: Colors.white.withOpacity(0.7),
+                                  color: Colors.white.withValues(alpha: .7),
                                   fontSize: 10,
                                 ),
                               ),
@@ -229,7 +238,7 @@ class _ScrabbleGameScreenState extends ConsumerState<ScrabbleGameScreen> {
           begin: Alignment.bottomCenter,
           end: Alignment.topCenter,
           colors: [
-            Colors.black.withOpacity(0.8),
+            Colors.black.withValues(alpha: .8),
             Colors.transparent,
           ],
         ),
@@ -245,18 +254,18 @@ class _ScrabbleGameScreenState extends ConsumerState<ScrabbleGameScreen> {
                 child: Text(
                   'Harfler yükleniyor...',
                   style: TextStyle(
-                    color: Colors.white.withOpacity(0.5),
+                    color: Colors.white.withValues(alpha: .5),
                     fontSize: 12,
                   ),
                 ),
               )
                   : Container(
                 decoration: BoxDecoration(
-                  color: const Color(0xFF8B4513).withOpacity(0.8),
+                  color: const Color(0xFF8B4513).withValues(alpha: .8),
                   borderRadius: BorderRadius.circular(12),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.5),
+                      color: Colors.black.withValues(alpha: .5),
                       blurRadius: 15,
                       offset: const Offset(0, 8),
                     ),
@@ -287,7 +296,7 @@ class _ScrabbleGameScreenState extends ConsumerState<ScrabbleGameScreen> {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.black.withOpacity(0.7),
+        color: Colors.black.withValues(alpha: .7),
         borderRadius: const BorderRadius.only(
           topLeft: Radius.circular(16),
           bottomLeft: Radius.circular(16),
@@ -376,7 +385,7 @@ class _ScrabbleGameScreenState extends ConsumerState<ScrabbleGameScreen> {
       color: Colors.transparent,
       child: InkWell(
         onTap: () {
-          print('🎮 BUTON TIKLANDI: $icon');
+          LogService.i('🎮 BUTON TIKLANDI: $icon');
           onTap();
         },
         borderRadius: BorderRadius.circular(12),
@@ -385,12 +394,12 @@ class _ScrabbleGameScreenState extends ConsumerState<ScrabbleGameScreen> {
           height: 56,
           decoration: BoxDecoration(
             gradient: LinearGradient(
-              colors: [color, color.withOpacity(0.7)],
+              colors: [color, color.withValues(alpha: .7)],
             ),
             borderRadius: BorderRadius.circular(12),
             boxShadow: [
               BoxShadow(
-                color: color.withOpacity(0.5),
+                color: color.withValues(alpha: .5),
                 blurRadius: 12,
               ),
             ],
@@ -417,7 +426,7 @@ class _ScrabbleGameScreenState extends ConsumerState<ScrabbleGameScreen> {
         borderRadius: BorderRadius.circular(6),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.3),
+            color: Colors.black.withValues(alpha: .3),
             blurRadius: 6,
             offset: const Offset(0, 3),
           ),
@@ -443,7 +452,7 @@ class _ScrabbleGameScreenState extends ConsumerState<ScrabbleGameScreen> {
               style: TextStyle(
                 fontSize: 9,
                 fontWeight: FontWeight.bold,
-                color: Colors.black.withOpacity(0.5),
+                color: Colors.black.withValues(alpha: .5),
               ),
             ),
           ),

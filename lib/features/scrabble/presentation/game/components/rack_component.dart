@@ -27,7 +27,7 @@ class RackComponent extends PositionComponent {
 
     final background = RectangleComponent(
       size: size,
-      paint: Paint()..color = const Color(0xFF8B4513).withOpacity(0.8),
+      paint: Paint()..color = const Color(0xFF8B4513).withValues(alpha: .8),
     );
     background.position = Vector2.zero();
     await add(background);

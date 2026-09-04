@@ -1,10 +1,10 @@
 // lib/features/scrabble/presentation/game/scrabble_game.dart
 
 import 'package:flame/game.dart';
-import 'package:flame/components.dart';
 import 'package:flame/events.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:yet_x_app/core/utils/logger_service.dart';
 import 'package:yet_x_app/features/scrabble/presentation/game/components/board_component.dart';
 import 'package:yet_x_app/features/scrabble/presentation/game/components/tile_component.dart';
 import 'package:yet_x_app/features/scrabble/presentation/game/components/rack_component.dart';
@@ -80,7 +80,7 @@ class ScrabbleGame extends FlameGame with TapCallbacks, DragCallbacks, ScaleDete
         targetZoom = null;
         startZoom = null;
         zoomAnimationProgress = 0;
-        print('✅ Animasyon tamamlandı: ${boardComponent.scale.x}');
+        LogService.i('✅ Animasyon tamamlandı: ${boardComponent.scale.x}');
       } else {
         final t = Curves.easeOut.transform(zoomAnimationProgress);
         final currentScale = startZoom! + (targetZoom! - startZoom!) * t;
@@ -96,7 +96,7 @@ class ScrabbleGame extends FlameGame with TapCallbacks, DragCallbacks, ScaleDete
     final playerRack = room.playerRacks[userId] ?? [];
     rackComponent.updateLetters(playerRack);
 
-    print('🎮 Oyuncu harfleri güncellendi: $playerRack');
+    LogService.i('🎮 Oyuncu harfleri güncellendi: $playerRack');
   }
 
   @override
@@ -185,7 +185,7 @@ class ScrabbleGame extends FlameGame with TapCallbacks, DragCallbacks, ScaleDete
   // ============================================================================
 
   void zoomIn() {
-    print('🔍🔍🔍 ZOOM IN ÇAĞRILDI');
+    LogService.i('🔍🔍🔍 ZOOM IN ÇAĞRILDI');
     final currentZoom = boardComponent.scale.x;
     double newZoom = currentZoom + 0.2;
     if (newZoom > 2.0) newZoom = 2.0;
@@ -194,11 +194,11 @@ class ScrabbleGame extends FlameGame with TapCallbacks, DragCallbacks, ScaleDete
     targetZoom = newZoom;
     zoomAnimationProgress = 0;
 
-    print('🔍 Başlangıç: $currentZoom → Hedef: $newZoom');
+    LogService.i('🔍 Başlangıç: $currentZoom → Hedef: $newZoom');
   }
 
   void zoomOut() {
-    print('🔍🔍🔍 ZOOM OUT ÇAĞRILDI');
+    LogService.i('🔍🔍🔍 ZOOM OUT ÇAĞRILDI');
     final currentZoom = boardComponent.scale.x;
     double newZoom = currentZoom - 0.2;
     if (newZoom < 0.5) newZoom = 0.5;
@@ -207,11 +207,11 @@ class ScrabbleGame extends FlameGame with TapCallbacks, DragCallbacks, ScaleDete
     targetZoom = newZoom;
     zoomAnimationProgress = 0;
 
-    print('🔍 Başlangıç: $currentZoom → Hedef: $newZoom');
+    LogService.i('🔍 Başlangıç: $currentZoom → Hedef: $newZoom');
   }
 
   void resetZoom() {
-    print('🔍🔍🔍 RESET ZOOM ÇAĞRILDI');
+    LogService.i('🔍🔍🔍 RESET ZOOM ÇAĞRILDI');
 
     startZoom = boardComponent.scale.x;
     targetZoom = 0.7;
@@ -219,6 +219,6 @@ class ScrabbleGame extends FlameGame with TapCallbacks, DragCallbacks, ScaleDete
 
     boardComponent.position = Vector2.zero();
 
-    print('🔍 Başlangıç: $startZoom → Hedef: 0.7');
+    LogService.i('🔍 Başlangıç: $startZoom → Hedef: 0.7');
   }
 }

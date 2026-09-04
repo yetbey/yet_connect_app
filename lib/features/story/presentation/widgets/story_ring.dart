@@ -42,7 +42,7 @@ class StoryRing extends StatelessWidget {
               : null,
           border: !hasUnseenStories && !isAddStory
               ? Border.all(
-                  color: colorScheme.outline.withOpacity(0.3),
+                  color: colorScheme.outline.withValues(alpha: .3),
                   width: 2,
                 )
               : null,

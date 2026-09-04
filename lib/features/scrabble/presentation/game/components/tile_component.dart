@@ -3,6 +3,7 @@
 import 'package:flame/components.dart';
 import 'package:flame/events.dart';
 import 'package:flutter/material.dart';
+import 'package:yet_x_app/core/utils/logger_service.dart';
 
 class TileComponent extends PositionComponent with DragCallbacks {
   final String letter;
@@ -53,7 +54,7 @@ class TileComponent extends PositionComponent with DragCallbacks {
       position: size / 2,
       anchor: Anchor.center,
       paint: Paint()
-        ..color = Colors.black.withOpacity(0.1)
+        ..color = Colors.black.withValues(alpha: .1)
         ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 3),
     );
     await add(shadow);
@@ -80,7 +81,7 @@ class TileComponent extends PositionComponent with DragCallbacks {
         style: TextStyle(
           fontSize: cellSize * 0.2,
           fontWeight: FontWeight.bold,
-          color: Colors.black.withOpacity(0.5),
+          color: Colors.black.withValues(alpha: .5),
         ),
       ),
       anchor: Anchor.bottomRight,
@@ -105,7 +106,7 @@ class TileComponent extends PositionComponent with DragCallbacks {
     // Büyüt
     scale = Vector2.all(1.2);
 
-    print('🎯 Tile sürüklenmeye başladı: $letter');
+    LogService.i('🎯 Tile sürüklenmeye başladı: $letter');
   }
 
   @override
@@ -126,7 +127,7 @@ class TileComponent extends PositionComponent with DragCallbacks {
     priority = 0;
     scale = Vector2.all(1.0);
 
-    print('🎯 Tile bırakıldı: $letter at $position');
+    LogService.i('🎯 Tile bırakıldı: $letter at $position');
   }
 
   // ============================================================================
@@ -147,7 +148,7 @@ class TileComponent extends PositionComponent with DragCallbacks {
       scale = Vector2.all(1.0);
       isDragging = false;
       priority = 0;
-      print('↩️ Tile geri döndü: $letter');
+      LogService.i('↩️ Tile geri döndü: $letter');
     }
   }
 
@@ -158,11 +159,11 @@ class TileComponent extends PositionComponent with DragCallbacks {
     scale = Vector2.all(1.0);
     isDragging = false;
     priority = 0;
-    print('✅ Tile tahtaya yerleşti: $letter at $newPosition');
+    LogService.i('✅ Tile tahtaya yerleşti: $letter at $newPosition');
   }
 
   void removeFromBoard() {
     isPlacedOnBoard = false;
-    print('❌ Tile tahtadan kaldırıldı: $letter');
+    LogService.i('❌ Tile tahtadan kaldırıldı: $letter');
   }
 }

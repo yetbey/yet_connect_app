@@ -4,6 +4,7 @@ import 'dart:async';
 
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:iconsax_plus/iconsax_plus.dart';
 import 'package:yet_x_app/core/services/navigation_service.dart';
@@ -218,7 +219,7 @@ class _ChatListPageState extends ConsumerState<ChatListPage> {
                               child: ListView.builder(
                                 padding: _listPadding,
                                 itemCount: displayList.length,
-                                cacheExtent: 800,
+                                scrollCacheExtent: const ScrollCacheExtent.pixels(800),
                                 addRepaintBoundaries: true,
                                 addAutomaticKeepAlives: false,
                                 itemBuilder: (context, index) {

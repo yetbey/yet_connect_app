@@ -49,7 +49,7 @@ class CellComponent extends PositionComponent {
           end: Alignment.bottomRight,
           colors: [
             color,
-            color.withOpacity(0.7),
+            color.withValues(alpha: .7),
           ],
         ).createShader(Rect.fromLTWH(0, 0, size.x, size.y))
         ..style = PaintingStyle.fill,
@@ -57,7 +57,7 @@ class CellComponent extends PositionComponent {
       RectangleComponent(
         size: size,
         paint: Paint()
-          ..color = Colors.white.withOpacity(0.1)
+          ..color = Colors.white.withValues(alpha: .1)
           ..style = PaintingStyle.stroke
           ..strokeWidth = 1,
       ),
@@ -71,7 +71,7 @@ class CellComponent extends PositionComponent {
       text: text,
       textRenderer: TextPaint(
         style: TextStyle(
-          color: Colors.white.withOpacity(0.8),
+          color: Colors.white.withValues(alpha: .8),
           fontSize: 10,
           fontWeight: FontWeight.bold,
         ),
@@ -129,7 +129,7 @@ class CellComponent extends PositionComponent {
 
     add(
       ColorEffect(
-        isHighlighted ? Colors.yellow.withOpacity(0.3) : Colors.transparent,
+        isHighlighted ? Colors.yellow.withValues(alpha: .3) : Colors.transparent,
         EffectController(duration: 0.2),
         opacityTo: isHighlighted ? 0.3 : 0,
       ),

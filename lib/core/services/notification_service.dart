@@ -8,7 +8,7 @@ import 'package:yet_x_app/core/utils/logger_service.dart';
 
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  print('🌙 Arka Plan Bildirimi: ${message.messageId}');
+  LogService.i('🌙 Arka Plan Bildirimi: ${message.messageId}');
 }
 
 class NotificationService {

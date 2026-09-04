@@ -3,10 +3,10 @@
 class WordValidator {
   // Türkçe kelime sözlüğü (basitleştirilmiş - gerçek projede API kullanın)
   static final Set<String> _turkishWords = {
-    'KEDİ', 'KEDI', 'KÖPEK', 'EV', 'MASA', 'SANDALYE', 'OKUL', 'KİTAP',
+    'KEDİ', 'KÖPEK', 'EV', 'MASA', 'SANDALYE', 'OKUL', 'KİTAP',
     'KALEM', 'DEFTER', 'ARABA', 'UÇAK', 'GEMİ', 'TREN', 'OTOBÜS',
     'TELEFON', 'BİLGİSAYAR', 'TABLET', 'OYUN', 'SPOR', 'MÜZİK',
-    'ŞARKI', 'DANS', 'RESİM', 'FİLM', 'KİTAP', 'GAZETE', 'DERGI',
+    'ŞARKI', 'DANS', 'RESİM', 'FİLM', 'GAZETE', 'DERGI',
     'YEMEK', 'İÇECEK', 'KAHVE', 'ÇAY', 'SU', 'MEYVE', 'SEBZE',
     'ET', 'BALIK', 'EKMEK', 'PEYNIR', 'YUMURTA', 'SÜT', 'YOĞURT',
     'BAL', 'REÇEL', 'TEREYAĞI', 'ZEYTİN', 'BİBER', 'DOMATES',

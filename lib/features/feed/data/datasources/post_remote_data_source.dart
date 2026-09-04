@@ -335,6 +335,7 @@ class PostRemoteDataSourceImpl implements PostRemoteDataSource {
     }
   }
 
+  @override
   Future<PostModel?> getRandomPost() async {
     try {
       final countResponse = await _supabase

@@ -92,14 +92,14 @@ class _RankUpDialogState extends State<RankUpDialog>
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                     colors: [
-                      widget.newRank.colorValue.withOpacity(0.95),
-                      widget.newRank.colorValue.withOpacity(0.8),
+                      widget.newRank.colorValue.withValues(alpha: .95),
+                      widget.newRank.colorValue.withValues(alpha: .8),
                     ],
                   ),
                   borderRadius: BorderRadius.circular(24),
                   boxShadow: [
                     BoxShadow(
-                      color: widget.newRank.colorValue.withOpacity(0.5),
+                      color: widget.newRank.colorValue.withValues(alpha: .5),
                       blurRadius: 30,
                       offset: const Offset(0, 10),
                     ),

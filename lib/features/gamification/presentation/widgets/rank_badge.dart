@@ -25,7 +25,7 @@ class RankBadge extends StatelessWidget {
             gradient: LinearGradient(
               colors: [
                 rank.colorValue,
-                rank.colorValue.withOpacity(0.7),
+                rank.colorValue.withValues(alpha: 0.7),
               ],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
@@ -33,7 +33,7 @@ class RankBadge extends StatelessWidget {
             shape: BoxShape.circle,
             boxShadow: [
               BoxShadow(
-                color: rank.colorValue.withOpacity(0.3),
+                color: rank.colorValue.withValues(alpha: .3),
                 blurRadius: 8,
                 offset: const Offset(0, 3),
               ),
@@ -79,13 +79,13 @@ class RankBadgeMini extends StatelessWidget {
         gradient: LinearGradient(
           colors: [
             rank.colorValue,
-            rank.colorValue.withOpacity(0.8),
+            rank.colorValue.withValues(alpha: .8),
           ],
         ),
         borderRadius: BorderRadius.circular(8),
         boxShadow: [
           BoxShadow(
-            color: rank.colorValue.withOpacity(0.3),
+            color: rank.colorValue.withValues(alpha: .3),
             blurRadius: 4,
             offset: const Offset(0, 2),
           ),

@@ -29,8 +29,13 @@ class _CreateStoryPageState extends ConsumerState<CreateStoryPage> {
   Future<void> _pickMedia(ImageSource source, {bool isVideo = false}) async {
     try {
       final XFile? file = isVideo
-          ? await _picker.pickVideo(source: source, maxDuration: const Duration(seconds: 30))
+          ? await _picker.pickVideo(
+        source: source,
+        maxDuration: const Duration(seconds: 30),
+      )
           : await _picker.pickImage(source: source);
+
+      if (!mounted) return;
 
       if (file != null) {
         setState(() {
@@ -40,13 +45,22 @@ class _CreateStoryPageState extends ConsumerState<CreateStoryPage> {
 
         if (isVideo) {
           _videoController = VideoPlayerController.file(_mediaFile!);
+
           await _videoController!.initialize();
+
+          if (!mounted) return;
+
           await _videoController!.setLooping(true);
           await _videoController!.play();
+
+          if (!mounted) return;
+
           setState(() {});
         }
       }
     } catch (e) {
+      if (!mounted) return;
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Medya seçimi hatası: $e')),
       );
@@ -150,7 +164,7 @@ class _CreateStoryPageState extends ConsumerState<CreateStoryPage> {
           Icon(
             Icons.add_photo_alternate_outlined,
             size: 80,
-            color: Colors.white.withOpacity(0.5),
+            color: Colors.white.withValues(alpha: .5),
           ),
           const SizedBox(height: 32),
           const Text(
@@ -233,7 +247,7 @@ class _CreateStoryPageState extends ConsumerState<CreateStoryPage> {
                   icon: const Icon(Icons.swap_horiz),
                   label: const Text('Değiştir'),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.white.withOpacity(0.2),
+                    backgroundColor: Colors.white.withValues(alpha: .2),
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(
@@ -274,14 +288,14 @@ class _MediaPickerButton extends StatelessWidget {
         decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: [
-              color.withOpacity(0.8),
-              color.withOpacity(0.6),
+              color.withValues(alpha: .8),
+              color.withValues(alpha: .6),
             ],
           ),
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: color.withOpacity(0.3),
+              color: color.withValues(alpha: .3),
               blurRadius: 12,
               offset: const Offset(0, 6),
             ),

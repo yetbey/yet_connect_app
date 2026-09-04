@@ -242,7 +242,7 @@ class FeelsNotifier extends Notifier<FeelsState> {
           'target': mission.target,
           'reward': '${mission.rewardPoints} XP',
           'icon': mission.icon ?? 'check_circle',
-          'color': mission.colorValue.value,
+          'color': mission.colorValue.toARGB32(),
         };
       }).toList();
 
@@ -378,7 +378,7 @@ class FeelsNotifier extends Notifier<FeelsState> {
       final content = [Content.text(prompt)];
       final response = await model.generateContent(content);
 
-      final aiText = response.text?.trim() ?? "Şu an ne diyeceğimi bilemedim ama yanındayım! 💛";
+      final aiText = response.text?.trim() ?? 'Şu an ne diyeceğimi bilemedim ama yanındayım! 💛';
 
       state = state.copyWith(
         isAiLoading: false,
@@ -389,7 +389,7 @@ class FeelsNotifier extends Notifier<FeelsState> {
       LogService.e('❌ Mood kaydetme/AI hatası', e);
       state = state.copyWith(
         isAiLoading: false,
-        aiMessage: "Şu an bağlantımda bir sorun var ama $mood hissettiğini not aldım! ✨",
+        aiMessage: 'Şu an bağlantımda bir sorun var ama $mood hissettiğini not aldım! ✨',
       );
     }
   }

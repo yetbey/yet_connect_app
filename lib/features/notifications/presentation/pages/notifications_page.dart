@@ -255,7 +255,6 @@ class _NotificationTile extends StatelessWidget {
     } else if (notification.postId != null) {
       try {
         final supabase = Supabase.instance.client;
-        final currentUserId = supabase.auth.currentUser?.id;
 
         final response = await supabase
             .from('posts')
@@ -269,8 +268,6 @@ class _NotificationTile extends StatelessWidget {
             .eq('id', notification.postId!)
             .single();
 
-        final myLikes = response['my_likes'] as List? ?? [];
-        final isLiked = myLikes.any((l) => l['user_id'] == currentUserId);
 
         final modJson = Map<String, dynamic>.from(response);
 

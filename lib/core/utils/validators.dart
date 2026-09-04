@@ -28,7 +28,7 @@ class Validators {
       return LocaleKeys.validation_name_min_length.tr();
     }
     // Sadece harf ve boşluk kontrolü
-    if (!RegExp(r"^[a-zA-ZğüşıöçĞÜŞİÖÇ ]+$").hasMatch(value)) {
+    if (!RegExp(r'^[a-zA-ZğüşıöçĞÜŞİÖÇ ]+$').hasMatch(value)) {
       return LocaleKeys.validation_invalid_name.tr();
     }
     return null;
@@ -54,7 +54,7 @@ class Validators {
       return LocaleKeys.validation_password_min_length.tr();
     }
     if (!_passwordRegExp.hasMatch(value)) {
-      return "Şifre en az 1 büyük harf, 1 rakam ve 1 özel karakter içermelidir.";
+      return 'Şifre en az 1 büyük harf, 1 rakam ve 1 özel karakter içermelidir.';
       // Bunu LocaleKeys'e eklemelisin: validation_password_complexity
     }
     return null;
@@ -66,7 +66,7 @@ class Validators {
       return LocaleKeys.validation_phone_required.tr();
     }
     // Boşlukları temizle
-    String cleanPhone = value.replaceAll(' ', '');
+    final String cleanPhone = value.replaceAll(' ', '');
 
     // Sadece rakam içerdiğinden emin ol
     if (!RegExp(r'^[0-9]+$').hasMatch(cleanPhone)) {
@@ -83,13 +83,13 @@ class Validators {
   // 5. Kullanıcı Adı Doğrulama
   static String? username(String? value) {
     if (value == null || value.trim().isEmpty) {
-      return LocaleKeys.auth_username.tr() + " " + LocaleKeys.validation_required.tr();
+      return '${LocaleKeys.auth_username.tr()} ${LocaleKeys.validation_required.tr()}';
     }
     if (value.length < 3) {
-      return "Kullanıcı adı en az 3 karakter olmalıdır.";
+      return 'Kullanıcı adı en az 3 karakter olmalıdır.';
     }
     if (!_usernameRegExp.hasMatch(value)) {
-      return "Kullanıcı adı sadece harf, rakam ve alt çizgi (_) içerebilir.";
+      return 'Kullanıcı adı sadece harf, rakam ve alt çizgi (_) içerebilir.';
     }
     return null;
   }

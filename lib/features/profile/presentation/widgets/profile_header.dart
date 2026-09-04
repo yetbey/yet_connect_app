@@ -2,8 +2,8 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'dart:ui';
 import 'package:yet_x_app/core/services/navigation_service.dart';
+import 'package:yet_x_app/core/utils/logger_service.dart';
 import 'package:yet_x_app/features/chat/presentation/providers/chat_provider.dart';
 import 'package:yet_x_app/features/gamification/presentation/providers/points_provider.dart';
 import 'package:yet_x_app/features/profile/presentation/providers/user_provider.dart';
@@ -33,7 +33,6 @@ class _ProfileHeaderState extends ConsumerState<ProfileHeader>
   static const _padding = 20.0;
   
   late AnimationController _animationController;
-  late Animation<double> _scaleAnimation;
   late Animation<double> _fadeAnimation;
 
   @override
@@ -43,11 +42,7 @@ class _ProfileHeaderState extends ConsumerState<ProfileHeader>
       duration: const Duration(milliseconds: 800),
       vsync: this,
     );
-    
-    _scaleAnimation = Tween<double>(begin: 0.8, end: 1.0).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.easeOutBack),
-    );
-    
+
     _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(parent: _animationController, curve: Curves.easeIn),
     );
@@ -67,7 +62,7 @@ class _ProfileHeaderState extends ConsumerState<ProfileHeader>
     final colorScheme = theme.colorScheme;
     final bioText = widget.user.bio ?? '';
 
-    print('🔍 DEBUG: ProfileHeader build - User ID: ${widget.user.id}');
+    LogService.i('🔍 DEBUG: ProfileHeader build - User ID: ${widget.user.id}');
 
     return Container(
       decoration: BoxDecoration(
@@ -76,7 +71,7 @@ class _ProfileHeaderState extends ConsumerState<ProfileHeader>
           end: Alignment.bottomCenter,
           colors: [
             colorScheme.surface,
-            colorScheme.surface.withOpacity(0.95),
+            colorScheme.surface.withValues(alpha: .95),
           ],
         ),
       ),
@@ -93,7 +88,7 @@ class _ProfileHeaderState extends ConsumerState<ProfileHeader>
                 shape: BoxShape.circle,
                 gradient: RadialGradient(
                   colors: [
-                    colorScheme.primary.withOpacity(0.15),
+                    colorScheme.primary.withValues(alpha: .15),
                     Colors.transparent,
                   ],
                 ),
@@ -110,7 +105,7 @@ class _ProfileHeaderState extends ConsumerState<ProfileHeader>
                 shape: BoxShape.circle,
                 gradient: RadialGradient(
                   colors: [
-                    colorScheme.secondary.withOpacity(0.1),
+                    colorScheme.secondary.withValues(alpha: .1),
                     Colors.transparent,
                   ],
                 ),
@@ -170,7 +165,7 @@ class _ProfileHeaderState extends ConsumerState<ProfileHeader>
                                       style: TextStyle(
                                         fontSize: 13,
                                         fontWeight: FontWeight.w500,
-                                        color: colorScheme.onSurface.withOpacity(0.6),
+                                        color: colorScheme.onSurface.withValues(alpha: 0.6),
                                         letterSpacing: 0.2,
                                       ),
                                     ),
@@ -193,7 +188,7 @@ class _ProfileHeaderState extends ConsumerState<ProfileHeader>
                                       style: TextStyle(
                                         fontSize: 13,
                                         fontWeight: FontWeight.w500,
-                                        color: colorScheme.onSurface.withOpacity(0.6),
+                                        color: colorScheme.onSurface.withValues(alpha: 0.6),
                                         letterSpacing: 0.2,
                                       ),
                                     ),
@@ -216,7 +211,7 @@ class _ProfileHeaderState extends ConsumerState<ProfileHeader>
                                       style: TextStyle(
                                         fontSize: 13,
                                         fontWeight: FontWeight.w500,
-                                        color: colorScheme.onSurface.withOpacity(0.6),
+                                        color: colorScheme.onSurface.withValues(alpha: .6),
                                         letterSpacing: 0.2,
                                       ),
                                     ),
@@ -252,7 +247,7 @@ class _ProfileHeaderState extends ConsumerState<ProfileHeader>
                     bioText,
                     style: TextStyle(
                       fontSize: 15,
-                      color: colorScheme.onSurface.withOpacity(0.7),
+                      color: colorScheme.onSurface.withValues(alpha: .7),
                       height: 1.4,
                     ),
                     maxLines: 2,
@@ -277,7 +272,7 @@ class _ProfileHeaderState extends ConsumerState<ProfileHeader>
   Widget _buildRankBadge(WidgetRef ref, ColorScheme colorScheme) {
     final pointsState = ref.watch(pointsProvider);
 
-    print('🔍 DEBUG Rank Badge - Points: ${pointsState.userPoints?.totalPoints}, Rank: ${pointsState.currentRank?.name}');
+    LogService.i('🔍 DEBUG Rank Badge - Points: ${pointsState.userPoints?.totalPoints}, Rank: ${pointsState.currentRank?.name}');
 
     if (pointsState.currentRank == null) {
       return const SizedBox.shrink();
@@ -290,7 +285,7 @@ class _ProfileHeaderState extends ConsumerState<ProfileHeader>
         shape: BoxShape.circle,
         boxShadow: [
           BoxShadow(
-            color: pointsState.currentRank!.colorValue.withOpacity(0.5),
+            color: pointsState.currentRank!.colorValue.withValues(alpha: .5),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -303,7 +298,7 @@ class _ProfileHeaderState extends ConsumerState<ProfileHeader>
           gradient: LinearGradient(
             colors: [
               pointsState.currentRank!.colorValue,
-              pointsState.currentRank!.colorValue.withOpacity(0.7),
+              pointsState.currentRank!.colorValue.withValues(alpha: .7),
             ],
           ),
           shape: BoxShape.circle,
@@ -321,7 +316,8 @@ class _ProfileHeaderState extends ConsumerState<ProfileHeader>
   Widget _buildRankInfo(WidgetRef ref, ColorScheme colorScheme) {
     final pointsState = ref.watch(pointsProvider);
 
-    print('🔍 DEBUG Rank Info - Points: ${pointsState.userPoints?.totalPoints}, Rank: ${pointsState.currentRank?.name}');
+    LogService.i('🔍 DEBUG Rank Info - Points: ${pointsState.userPoints?.totalPoints}, Rank: ${pointsState.currentRank?.name}');
+
 
     if (pointsState.userPoints == null || pointsState.currentRank == null) {
       return const SizedBox.shrink();
@@ -333,13 +329,13 @@ class _ProfileHeaderState extends ConsumerState<ProfileHeader>
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            pointsState.currentRank!.colorValue.withOpacity(0.2),
-            pointsState.currentRank!.colorValue.withOpacity(0.1),
+            pointsState.currentRank!.colorValue.withValues(alpha: .2),
+            pointsState.currentRank!.colorValue.withValues(alpha: .1),
           ],
         ),
         borderRadius: BorderRadius.circular(8),
         border: Border.all(
-          color: pointsState.currentRank!.colorValue.withOpacity(0.3),
+          color: pointsState.currentRank!.colorValue.withValues(alpha: .3),
           width: 1,
         ),
       ),
@@ -366,7 +362,7 @@ class _ProfileHeaderState extends ConsumerState<ProfileHeader>
             style: TextStyle(
               fontSize: 11,
               fontWeight: FontWeight.w600,
-              color: colorScheme.onSurface.withOpacity(0.6),
+              color: colorScheme.onSurface.withValues(alpha: .6),
             ),
           ),
         ],
@@ -394,13 +390,13 @@ class _ProfileHeaderState extends ConsumerState<ProfileHeader>
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: [
-                colorScheme.primary.withOpacity(0.8),
-                colorScheme.secondary.withOpacity(0.8),
+                colorScheme.primary.withValues(alpha: .8),
+                colorScheme.secondary.withValues(alpha: .8),
               ],
             ),
             boxShadow: [
               BoxShadow(
-                color: colorScheme.primary.withOpacity(0.4),
+                color: colorScheme.primary.withValues(alpha: .4),
                 blurRadius: 20,
                 offset: const Offset(0, 8),
               ),
@@ -440,149 +436,6 @@ class _ProfileHeaderState extends ConsumerState<ProfileHeader>
     );
   }
 
-  Widget _buildGlassmorphicStats(ThemeData theme, ColorScheme colorScheme) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(24),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-        child: Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(24),
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                colorScheme.surfaceContainerHigh.withOpacity(0.7),
-                colorScheme.surfaceContainerHigh.withOpacity(0.5),
-              ],
-            ),
-            border: Border.all(
-              color: Colors.white.withOpacity(0.2),
-              width: 1.5,
-            ),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 4),
-            child: Row(
-              children: [
-                _buildGlassStatItem(
-                  count: widget.postCount.toString(),
-                  label: 'Gönderiler',
-                  theme: theme,
-                  colorScheme: colorScheme,
-                  index: 0,
-                ),
-                const SizedBox(width: 8),
-                _buildGlassStatItem(
-                  count: widget.user.followersCount.toString(),
-                  label: 'Takipçi',
-                  theme: theme,
-                  colorScheme: colorScheme,
-                  index: 1,
-                  onTap: () {
-                    HapticFeedback.lightImpact();
-                    NavigationService.toNamed(
-                      AppRoutes.followList,
-                      arguments: {'userId': widget.user.id, 'initialTabIndex': 0},
-                    );
-                  },
-                ),
-                const SizedBox(width: 8),
-                _buildGlassStatItem(
-                  count: widget.user.followingCount.toString(),
-                  label: 'Takip',
-                  theme: theme,
-                  colorScheme: colorScheme,
-                  index: 2,
-                  onTap: () {
-                    HapticFeedback.lightImpact();
-                    NavigationService.toNamed(
-                      AppRoutes.followList,
-                      arguments: {'userId': widget.user.id, 'initialTabIndex': 1},
-                    );
-                  },
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildGlassStatItem({
-    required String count,
-    required String label,
-    required ThemeData theme,
-    required ColorScheme colorScheme,
-    required int index,
-    VoidCallback? onTap,
-  }) {
-    return Expanded(
-      child: TweenAnimationBuilder<double>(
-        duration: Duration(milliseconds: 400 + (index * 100)),
-        tween: Tween(begin: 0.0, end: 1.0),
-        curve: Curves.easeOutCubic,
-        builder: (context, value, child) {
-          return Transform.scale(
-            scale: 0.8 + (value * 0.2),
-            child: Opacity(
-              opacity: value,
-              child: child,
-            ),
-          );
-        },
-        child: Material(
-          color: Colors.transparent,
-          child: InkWell(
-            onTap: onTap,
-            borderRadius: BorderRadius.circular(20),
-            splashColor: colorScheme.primary.withValues(alpha:  0.2),
-            highlightColor: colorScheme.primary.withValues(alpha:  0.1),
-            child: Container(
-              height: 90,
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(20),
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    Colors.white.withOpacity(0.1),
-                    Colors.white.withOpacity(0.05),
-                  ],
-                ),
-              ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    count,
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: colorScheme.onSurface,
-                      letterSpacing: -0.5,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    label,
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w500,
-                      color: colorScheme.onSurface.withOpacity(0.6),
-                      letterSpacing: 0.2,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
 
   Widget _buildModernActionButtons(
     BuildContext context,
@@ -678,21 +531,21 @@ class _ProfileHeaderState extends ConsumerState<ProfileHeader>
             ? LinearGradient(
                 colors: [
                   colorScheme.primary,
-                  colorScheme.primary.withOpacity(0.8),
+                  colorScheme.primary.withValues(alpha: .8),
                 ],
               )
             : null,
-        color: isPrimary ? null : colorScheme.surfaceContainerHigh.withOpacity(0.6),
+        color: isPrimary ? null : colorScheme.surfaceContainerHigh.withValues(alpha: .6),
         border: Border.all(
           color: isPrimary
               ? Colors.transparent
-              : colorScheme.outline.withOpacity(0.3),
+              : colorScheme.outline.withValues(alpha: .3),
           width: 1,
         ),
         boxShadow: isPrimary
             ? [
                 BoxShadow(
-                  color: colorScheme.primary.withOpacity(0.3),
+                  color: colorScheme.primary.withValues(alpha: .3),
                   blurRadius: 12,
                   offset: const Offset(0, 4),
                 ),
@@ -712,7 +565,7 @@ class _ProfileHeaderState extends ConsumerState<ProfileHeader>
                 size: 18,
                 color: isPrimary
                     ? colorScheme.onPrimary
-                    : colorScheme.onSurface.withOpacity(0.8),
+                    : colorScheme.onSurface.withValues(alpha: .8),
               ),
               const SizedBox(width: 8),
               Text(
@@ -722,7 +575,7 @@ class _ProfileHeaderState extends ConsumerState<ProfileHeader>
                   fontWeight: FontWeight.w600,
                   color: isPrimary
                       ? colorScheme.onPrimary
-                      : colorScheme.onSurface.withOpacity(0.9),
+                      : colorScheme.onSurface.withValues(alpha: .9),
                   letterSpacing: 0.2,
                 ),
               ),
@@ -743,9 +596,9 @@ class _ProfileHeaderState extends ConsumerState<ProfileHeader>
       height: 48,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(14),
-        color: colorScheme.surfaceContainerHigh.withOpacity(0.6),
+        color: colorScheme.surfaceContainerHigh.withValues(alpha: .6),
         border: Border.all(
-          color: colorScheme.outline.withOpacity(0.3),
+          color: colorScheme.outline.withValues(alpha: .3),
           width: 1,
         ),
       ),
@@ -757,7 +610,7 @@ class _ProfileHeaderState extends ConsumerState<ProfileHeader>
           child: Icon(
             icon,
             size: 20,
-            color: colorScheme.onSurface.withOpacity(0.8),
+            color: colorScheme.onSurface.withValues(alpha: .8),
           ),
         ),
       ),

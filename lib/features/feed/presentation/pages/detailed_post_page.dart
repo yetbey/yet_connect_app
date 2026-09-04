@@ -7,7 +7,6 @@ import 'package:iconsax_plus/iconsax_plus.dart';
 import 'package:yet_x_app/config/routes/app_routes.dart';
 import 'package:yet_x_app/config/theme/app_text_styles.dart'; // ✨ Eklendi
 import 'package:yet_x_app/core/constants/app_colors.dart';
-import 'package:yet_x_app/core/constants/decorations.dart';
 import 'package:yet_x_app/core/services/custom_cache_manager.dart'; // ✨ Eklendi
 import 'package:yet_x_app/core/services/navigation_service.dart';
 import 'package:yet_x_app/features/feed/data/models/post_model.dart';
@@ -682,125 +681,6 @@ class _DetailedPostPageState extends ConsumerState<DetailedPostPage>
           ),
         ],
       ),
-    );
-  }
-
-  void _showLikesSheet() {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => _buildLikesSheet(),
-    );
-  }
-
-  Widget _buildLikesSheet() {
-    return DraggableScrollableSheet(
-      initialChildSize: 0.6,
-      minChildSize: 0.4,
-      maxChildSize: 0.9,
-      snap: true,
-      snapSizes: const [0.6, 0.9],
-      builder: (_, controller) {
-        return Container(
-          decoration: kLikesBottomSheetBoxDecoration(context),
-          child: Column(
-            children: [
-              const SizedBox(height: 10),
-              Container(
-                width: 40,
-                height: 5,
-                decoration: kLikesBottomSheetHandlerBoxDecoration(),
-              ),
-              const SizedBox(height: 15),
-              Text(
-                LocaleKeys.feed_likers.tr(),
-                style: AppTextStyles.labelLarge,
-              ),
-              const Divider(),
-              Expanded(
-                child: FutureBuilder<List<Map<String, dynamic>>>(
-                  future: ref
-                      .read(postActionsProvider.notifier)
-                      .getPostLikeUsers(widget.post.id),
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return const Center(
-                        child: CircularProgressIndicator(
-                          color: AppColors.primary,
-                        ),
-                      );
-                    }
-
-                    final users = snapshot.data ?? [];
-                    if (users.isEmpty) {
-                      return Center(
-                        child: Text(
-                          LocaleKeys.feed_no_likes_yet.tr(),
-                          style: AppTextStyles.bodyMedium,
-                        ),
-                      );
-                    }
-
-                    return ListView.separated(
-                      controller: controller,
-                      itemCount: users.length,
-                      padding: const EdgeInsets.symmetric(vertical: 8),
-                      separatorBuilder: (context, index) => const Divider(
-                        height: 1,
-                        indent: 70,
-                        color: AppColors.divider,
-                      ),
-                      itemBuilder: (context, index) {
-                        final user = users[index];
-                        final imgUrl = user['profile_image_url'];
-
-                        return ListTile(
-                          leading: CircleAvatar(
-                            backgroundImage:
-                                (imgUrl != null && imgUrl.isNotEmpty)
-                                ? CachedNetworkImageProvider(
-                                    imgUrl,
-                                    maxHeight: 80,
-                                    maxWidth: 80,
-                                    cacheManager: CustomImageCacheManager(),
-                                  )
-                                : null,
-                            backgroundColor: AppColors.cardColor,
-                            child: (imgUrl == null)
-                                ? const Icon(
-                                    Icons.person,
-                                    color: AppColors.textColor,
-                                  )
-                                : null,
-                          ),
-                          title: Text(
-                            user['full_name'] ??
-                                user['username'] ??
-                                'Kullanıcı',
-                            style: AppTextStyles.bodyMedium,
-                          ),
-                          subtitle: Text(
-                            "@${user['username']}",
-                            style: AppTextStyles.bodySmall,
-                          ),
-                          onTap: () {
-                            Navigator.pop(context);
-                            NavigationService.toNamed(
-                              AppRoutes.profile,
-                              arguments: {'userId': user['id'].toString()},
-                            );
-                          },
-                        );
-                      },
-                    );
-                  },
-                ),
-              ),
-            ],
-          ),
-        );
-      },
     );
   }
 }

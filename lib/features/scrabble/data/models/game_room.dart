@@ -1,5 +1,6 @@
 // lib/features/scrabble/data/models/game_room.dart
 
+import 'package:yet_x_app/core/utils/logger_service.dart';
 import 'package:yet_x_app/features/scrabble/data/models/board_cell.dart';
 import 'package:yet_x_app/features/scrabble/data/models/game_move.dart';
 
@@ -127,7 +128,7 @@ class GameRoom {
         }).toList();
       }).toList();
     } catch (e) {
-      print('❌ Board parse error: $e');
+      LogService.i('❌ Board parse error: $e');
       return [];
     }
   }
@@ -145,7 +146,7 @@ class GameRoom {
       }
       return {};
     } catch (e) {
-      print('❌ Scores parse error: $e');
+      LogService.i('❌ Scores parse error: $e');
       return {};
     }
   }
@@ -165,7 +166,7 @@ class GameRoom {
       }
       return {};
     } catch (e) {
-      print('❌ PlayerRacks parse error: $e');
+      LogService.i('❌ PlayerRacks parse error: $e');
       return {};
     }
   }
@@ -190,7 +191,7 @@ class GameRoom {
       }
       return [];
     } catch (e) {
-      print('❌ Moves parse error: $e');
+      LogService.i('❌ Moves parse error: $e');
       return [];
     }
   }

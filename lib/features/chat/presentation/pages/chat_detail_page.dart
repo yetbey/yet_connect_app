@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:iconsax_plus/iconsax_plus.dart';
@@ -606,7 +607,7 @@ class _ChatDetailPageState extends ConsumerState<ChatDetailPage> {
       controller: _scrollController,
       itemCount: messageState.messages.length,
       padding: _messageListPadding,
-      cacheExtent: 1000,
+      scrollCacheExtent: const ScrollCacheExtent.pixels(1000),
       addRepaintBoundaries: true,
       addAutomaticKeepAlives: false,
       itemBuilder: (context, index) {

@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:iconsax_plus/iconsax_plus.dart';
 import 'package:timeago/timeago.dart' as timeago;
@@ -185,7 +186,7 @@ class _CommentBottomSheetState extends ConsumerState<CommentBottomSheet> with Si
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       itemCount: commentsState.comments.length,
       physics: const BouncingScrollPhysics(),
-      cacheExtent: 800,
+      scrollCacheExtent: const ScrollCacheExtent.pixels(800),
       addRepaintBoundaries: true,
       addAutomaticKeepAlives: false,
       separatorBuilder: (_, _) => const SizedBox(height: 16,),

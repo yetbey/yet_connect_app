@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:yet_x_app/core/constants/app_colors.dart';
 import 'package:yet_x_app/features/gamification/presentation/providers/leaderboard_provider.dart';
-import 'package:yet_x_app/features/gamification/presentation/widgets/rank_badge.dart';
 
 class LeaderboardPage extends ConsumerWidget {
   const LeaderboardPage({super.key});
@@ -126,8 +125,8 @@ class LeaderboardPage extends ConsumerWidget {
         gradient: isTopThree
             ? LinearGradient(
           colors: [
-            medalColor!.withOpacity(0.1),
-            medalColor.withOpacity(0.05),
+            medalColor!.withValues(alpha: 0.1),
+            medalColor.withValues(alpha: 0.05),
           ],
         )
             : null,
@@ -149,7 +148,7 @@ class LeaderboardPage extends ConsumerWidget {
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
-                color: theme.colorScheme.onSurface.withOpacity(0.6),
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
               ),
             ),
           ),
@@ -190,7 +189,7 @@ class LeaderboardPage extends ConsumerWidget {
                   Text(
                     '@${user['username']}',
                     style: TextStyle(
-                      color: theme.colorScheme.onSurface.withOpacity(0.6),
+                      color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
                       fontSize: 13,
                     ),
                   ),
@@ -217,7 +216,7 @@ class LeaderboardPage extends ConsumerWidget {
                   user['rank_display_name'],
                   style: TextStyle(
                     fontSize: 11,
-                    color: theme.colorScheme.onSurface.withOpacity(0.6),
+                    color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
                   ),
                 ),
             ],

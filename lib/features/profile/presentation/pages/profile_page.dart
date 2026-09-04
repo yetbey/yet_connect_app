@@ -17,8 +17,6 @@ import 'package:yet_x_app/features/feed/presentation/providers/post_provider.dar
 import 'package:yet_x_app/features/profile/presentation/providers/user_provider.dart';
 import 'package:yet_x_app/config/routes/app_routes.dart';
 
-import '../../../gamification/presentation/providers/points_provider.dart';
-
 class ProfilePage extends ConsumerStatefulWidget {
   final String? userId;
 
@@ -34,7 +32,6 @@ class _ProfilePageState extends ConsumerState<ProfilePage>
   bool _isLoadingOtherUser = false;
   late TabController _tabController;
   late ScrollController _scrollController;
-  double _scrollOffset = 0.0;
   static const double _cardSpacing = 12.0;
 
   @override
@@ -44,12 +41,6 @@ class _ProfilePageState extends ConsumerState<ProfilePage>
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
-    _scrollController = ScrollController()
-      ..addListener(() {
-        setState(() {
-          _scrollOffset = _scrollController.offset;
-        });
-      });
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _checkAndFetchOtherUser();
     });

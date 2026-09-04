@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:yet_x_app/core/constants/supabase_tables.dart';
-import 'package:google_sign_in/google_sign_in.dart';
 import 'package:yet_x_app/core/services/database_service.dart';
 import 'package:yet_x_app/core/utils/logger_service.dart';
 import 'package:yet_x_app/generated/locale_keys.g.dart';

@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:page_transition/page_transition.dart';
@@ -301,7 +302,6 @@ class _HomePageState extends ConsumerState<HomePage> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
 
     ref.listen(followedTagsProvider, (previous, next) {
       next.whenData((followedTags) {
@@ -357,7 +357,7 @@ class _HomePageState extends ConsumerState<HomePage> {
               physics: const BouncingScrollPhysics(
                 parent: AlwaysScrollableScrollPhysics(),
               ),
-              cacheExtent: 1000,
+              scrollCacheExtent: const ScrollCacheExtent.pixels(1000),
               slivers: [
                 //  Modern App Bar
                 SliverAppBar(

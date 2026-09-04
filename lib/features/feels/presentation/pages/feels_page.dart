@@ -1218,7 +1218,7 @@ class _FeelsPageState extends ConsumerState<FeelsPage>
                   );
                 },
                 loading: () => const SizedBox.shrink(),
-                error: (_, __) => const SizedBox.shrink(),
+                error: (_, _) => const SizedBox.shrink(),
               ),
               _buildActionCard(
                 context: context,

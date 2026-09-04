@@ -100,11 +100,11 @@ class _StoryViewerPageState extends ConsumerState<StoryViewerPage> {
 
   void _startStoryTimer(int duration) {
     _storyTimer?.cancel();
-    final interval = 50; // 50ms interval for smooth progress
+    const interval = 50; // 50ms interval for smooth progress
     final totalTicks = duration ~/ interval;
     int currentTick = 0;
 
-    _storyTimer = Timer.periodic(Duration(milliseconds: interval), (timer) {
+    _storyTimer = Timer.periodic(const Duration(milliseconds: interval), (timer) {
       if (!_isPaused && mounted) {
         currentTick++;
         setState(() {
@@ -209,7 +209,6 @@ class _StoryViewerPageState extends ConsumerState<StoryViewerPage> {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
     final currentUser = ref.watch(userProvider).currentUser;
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
@@ -302,10 +301,10 @@ class _StoryViewerPageState extends ConsumerState<StoryViewerPage> {
                           begin: Alignment.topCenter,
                           end: Alignment.bottomCenter,
                           colors: [
-                            Colors.black.withOpacity(0.5),
+                            Colors.black.withValues(alpha: .5),
                             Colors.transparent,
                             Colors.transparent,
-                            Colors.black.withOpacity(0.5),
+                            Colors.black.withValues(alpha: .5),
                           ],
                           stops: const [0.0, 0.2, 0.8, 1.0],
                         ),
@@ -329,7 +328,7 @@ class _StoryViewerPageState extends ConsumerState<StoryViewerPage> {
                                   margin: const EdgeInsets.symmetric(horizontal: 2),
                                   decoration: BoxDecoration(
                                     borderRadius: BorderRadius.circular(2),
-                                    color: Colors.white.withOpacity(0.3),
+                                    color: Colors.white.withValues(alpha: .3),
                                   ),
                                   child: FractionallySizedBox(
                                     alignment: Alignment.centerLeft,
@@ -381,7 +380,7 @@ class _StoryViewerPageState extends ConsumerState<StoryViewerPage> {
                                     Text(
                                       _getTimeAgo(story.createdAt),
                                       style: TextStyle(
-                                        color: Colors.white.withOpacity(0.7),
+                                        color: Colors.white.withValues(alpha: .7),
                                         fontSize: 12,
                                       ),
                                     ),
@@ -394,7 +393,7 @@ class _StoryViewerPageState extends ConsumerState<StoryViewerPage> {
                                   child: Container(
                                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                                     decoration: BoxDecoration(
-                                      color: Colors.white.withOpacity(0.2),
+                                      color: Colors.white.withValues(alpha: .2),
                                       borderRadius: BorderRadius.circular(20),
                                     ),
                                     child: Row(
@@ -425,7 +424,7 @@ class _StoryViewerPageState extends ConsumerState<StoryViewerPage> {
                     Center(
                       child: Icon(
                         Icons.pause_circle_filled,
-                        color: Colors.white.withOpacity(0.7),
+                        color: Colors.white.withValues(alpha: .7),
                         size: 80,
                       ),
                     ),

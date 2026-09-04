@@ -3,13 +3,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:cached_network_image/cached_network_image.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:yet_x_app/config/routes/app_routes.dart';
 import 'package:yet_x_app/features/scrabble/presentation/providers/scrabble_provider.dart';
 import 'package:yet_x_app/features/scrabble/data/models/game_room.dart';
 import 'package:yet_x_app/features/profile/presentation/providers/user_provider.dart';
-import 'package:yet_x_app/core/constants/app_colors.dart';
 import 'package:yet_x_app/core/services/navigation_service.dart';
 import 'package:yet_x_app/core/utils/utils.dart';
 import 'dart:ui';
@@ -118,7 +115,7 @@ class _ScrabbleLobbyScreenState extends ConsumerState<ScrabbleLobbyScreen>
         decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: [
-              Colors.black.withOpacity(0.3),
+              Colors.black.withValues(alpha: .3),
               Colors.transparent,
             ],
             begin: Alignment.topCenter,
@@ -133,10 +130,10 @@ class _ScrabbleLobbyScreenState extends ConsumerState<ScrabbleLobbyScreen>
               icon: Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.1),
+                  color: Colors.white.withValues(alpha: .1),
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
-                    color: Colors.white.withOpacity(0.2),
+                    color: Colors.white.withValues(alpha: .2),
                   ),
                 ),
                 child: const Icon(
@@ -186,10 +183,10 @@ class _ScrabbleLobbyScreenState extends ConsumerState<ScrabbleLobbyScreen>
               icon: Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.1),
+                  color: Colors.white.withValues(alpha: .1),
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
-                    color: Colors.white.withOpacity(0.2),
+                    color: Colors.white.withValues(alpha: .2),
                   ),
                 ),
                 child: const Icon(
@@ -216,10 +213,10 @@ class _ScrabbleLobbyScreenState extends ConsumerState<ScrabbleLobbyScreen>
           Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.1),
+              color: Colors.white.withValues(alpha: .1),
               borderRadius: BorderRadius.circular(20),
               border: Border.all(
-                color: Colors.white.withOpacity(0.2),
+                color: Colors.white.withValues(alpha: .2),
               ),
             ),
             child: const CircularProgressIndicator(
@@ -272,7 +269,7 @@ class _ScrabbleLobbyScreenState extends ConsumerState<ScrabbleLobbyScreen>
                           gradient: LinearGradient(
                             colors: [
                               Colors.transparent,
-                              Colors.white.withOpacity(0.3),
+                              Colors.white.withValues(alpha: .3),
                             ],
                           ),
                         ),
@@ -283,7 +280,7 @@ class _ScrabbleLobbyScreenState extends ConsumerState<ScrabbleLobbyScreen>
                       child: Text(
                         'VEYA',
                         style: TextStyle(
-                          color: Colors.white.withOpacity(0.5),
+                          color: Colors.white.withValues(alpha: .5),
                           fontSize: 12,
                           fontWeight: FontWeight.bold,
                           letterSpacing: 2,
@@ -296,7 +293,7 @@ class _ScrabbleLobbyScreenState extends ConsumerState<ScrabbleLobbyScreen>
                         decoration: BoxDecoration(
                           gradient: LinearGradient(
                             colors: [
-                              Colors.white.withOpacity(0.3),
+                              Colors.white.withValues(alpha: .3),
                               Colors.transparent,
                             ],
                           ),
@@ -344,7 +341,7 @@ class _ScrabbleLobbyScreenState extends ConsumerState<ScrabbleLobbyScreen>
                         vertical: 6,
                       ),
                       decoration: BoxDecoration(
-                        color: Colors.green.withOpacity(0.2),
+                        color: Colors.green.withValues(alpha: .2),
                         borderRadius: BorderRadius.circular(20),
                         border: Border.all(color: Colors.green),
                       ),
@@ -421,7 +418,7 @@ class _ScrabbleLobbyScreenState extends ConsumerState<ScrabbleLobbyScreen>
           ),
           boxShadow: [
             BoxShadow(
-              color: const Color(0xFFFFD700).withOpacity(0.5),
+              color: const Color(0xFFFFD700).withValues(alpha: .5),
               blurRadius: 20,
               offset: const Offset(0, 10),
             ),
@@ -442,7 +439,7 @@ class _ScrabbleLobbyScreenState extends ConsumerState<ScrabbleLobbyScreen>
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.2),
+                      color: Colors.white.withValues(alpha: .2),
                       borderRadius: BorderRadius.circular(16),
                     ),
                     child: const Icon(
@@ -512,7 +509,7 @@ class _ScrabbleLobbyScreenState extends ConsumerState<ScrabbleLobbyScreen>
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: Colors.white.withOpacity(0.1),
+            color: Colors.white.withValues(alpha: .1),
             width: 1.5,
           ),
         ),
@@ -526,8 +523,8 @@ class _ScrabbleLobbyScreenState extends ConsumerState<ScrabbleLobbyScreen>
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                   colors: [
-                    Colors.white.withOpacity(0.1),
-                    Colors.white.withOpacity(0.05),
+                    Colors.white.withValues(alpha: .1),
+                    Colors.white.withValues(alpha: .05),
                   ],
                 ),
               ),
@@ -566,7 +563,7 @@ class _ScrabbleLobbyScreenState extends ConsumerState<ScrabbleLobbyScreen>
                                       Text(
                                         'Ev Sahibi',
                                         style: TextStyle(
-                                          color: Colors.white.withOpacity(0.7),
+                                          color: Colors.white.withValues(alpha: .7),
                                           fontSize: 12,
                                         ),
                                       ),
@@ -708,7 +705,7 @@ class _ScrabbleLobbyScreenState extends ConsumerState<ScrabbleLobbyScreen>
         ),
         boxShadow: [
           BoxShadow(
-            color: (isHost ? const Color(0xFFFFD700) : Colors.blue).withOpacity(0.5),
+            color: (isHost ? const Color(0xFFFFD700) : Colors.blue).withValues(alpha: .5),
             blurRadius: 8,
           ),
         ],
@@ -736,16 +733,16 @@ class _ScrabbleLobbyScreenState extends ConsumerState<ScrabbleLobbyScreen>
       height: 40,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: Colors.white.withOpacity(0.1),
+        color: Colors.white.withValues(alpha: .1),
         border: Border.all(
-          color: Colors.white.withOpacity(0.3),
+          color: Colors.white.withValues(alpha: .3),
           width: 2,
           strokeAlign: BorderSide.strokeAlignInside,
         ),
       ),
       child: Icon(
         Icons.add,
-        color: Colors.white.withOpacity(0.5),
+        color: Colors.white.withValues(alpha: .5),
         size: 20,
       ),
     );
@@ -763,20 +760,20 @@ class _ScrabbleLobbyScreenState extends ConsumerState<ScrabbleLobbyScreen>
           Container(
             padding: const EdgeInsets.all(32),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.05),
+              color: Colors.white.withValues(alpha: .05),
               shape: BoxShape.circle,
             ),
             child: Icon(
               Icons.search_off,
               size: 64,
-              color: Colors.white.withOpacity(0.3),
+              color: Colors.white.withValues(alpha: .3),
             ),
           ),
           const SizedBox(height: 24),
           Text(
             'Aktif Oda Bulunamadı',
             style: TextStyle(
-              color: Colors.white.withOpacity(0.7),
+              color: Colors.white.withValues(alpha: .7),
               fontSize: 20,
               fontWeight: FontWeight.bold,
             ),
@@ -785,7 +782,7 @@ class _ScrabbleLobbyScreenState extends ConsumerState<ScrabbleLobbyScreen>
           Text(
             'İlk odayı sen oluştur!',
             style: TextStyle(
-              color: Colors.white.withOpacity(0.5),
+              color: Colors.white.withValues(alpha: .5),
               fontSize: 14,
             ),
           ),
@@ -814,13 +811,13 @@ class _ScrabbleLobbyScreenState extends ConsumerState<ScrabbleLobbyScreen>
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                   colors: [
-                    const Color(0xFF1a1a2e).withOpacity(0.95),
-                    const Color(0xFF16213e).withOpacity(0.95),
+                    const Color(0xFF1a1a2e).withValues(alpha: .95),
+                    const Color(0xFF16213e).withValues(alpha: .95),
                   ],
                 ),
                 borderRadius: BorderRadius.circular(24),
                 border: Border.all(
-                  color: Colors.white.withOpacity(0.2),
+                  color: Colors.white.withValues(alpha: .2),
                 ),
               ),
               padding: const EdgeInsets.all(24),
@@ -887,12 +884,12 @@ class _ScrabbleLobbyScreenState extends ConsumerState<ScrabbleLobbyScreen>
                               colors: [Color(0xFFFFD700), Color(0xFFFF8C00)],
                             )
                                 : null,
-                            color: isSelected ? null : Colors.white.withOpacity(0.1),
+                            color: isSelected ? null : Colors.white.withValues(alpha: .1),
                             borderRadius: BorderRadius.circular(16),
                             border: Border.all(
                               color: isSelected
                                   ? Colors.transparent
-                                  : Colors.white.withOpacity(0.2),
+                                  : Colors.white.withValues(alpha: .2),
                               width: 2,
                             ),
                           ),
@@ -901,7 +898,7 @@ class _ScrabbleLobbyScreenState extends ConsumerState<ScrabbleLobbyScreen>
                             children: [
                               Text(
                                 count.toString(),
-                                style: TextStyle(
+                                style: const TextStyle(
                                   color: Colors.white,
                                   fontSize: 28,
                                   fontWeight: FontWeight.bold,
@@ -910,7 +907,7 @@ class _ScrabbleLobbyScreenState extends ConsumerState<ScrabbleLobbyScreen>
                               Text(
                                 'Kişi',
                                 style: TextStyle(
-                                  color: Colors.white.withOpacity(0.8),
+                                  color: Colors.white.withValues(alpha: .8),
                                   fontSize: 12,
                                 ),
                               ),
@@ -931,7 +928,7 @@ class _ScrabbleLobbyScreenState extends ConsumerState<ScrabbleLobbyScreen>
                           onPressed: () => Navigator.pop(context),
                           style: TextButton.styleFrom(
                             padding: const EdgeInsets.symmetric(vertical: 16),
-                            backgroundColor: Colors.white.withOpacity(0.1),
+                            backgroundColor: Colors.white.withValues(alpha: .1),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12),
                             ),
@@ -977,7 +974,7 @@ class _ScrabbleLobbyScreenState extends ConsumerState<ScrabbleLobbyScreen>
                               borderRadius: BorderRadius.circular(12),
                             ),
                           ).copyWith(
-                            backgroundColor: MaterialStateProperty.all(Colors.transparent),
+                            backgroundColor: WidgetStateProperty.all(Colors.transparent),
                           ),
                           child: Ink(
                             decoration: BoxDecoration(

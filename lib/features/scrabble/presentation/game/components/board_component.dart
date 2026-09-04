@@ -4,6 +4,7 @@ import 'package:flame/components.dart';
 import 'package:flame/effects.dart';
 import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
+import 'package:yet_x_app/core/utils/logger_service.dart';
 import 'package:yet_x_app/features/scrabble/data/models/board_cell.dart';
 import 'package:yet_x_app/features/scrabble/presentation/game/components/cell_component.dart';
 import 'package:yet_x_app/features/scrabble/presentation/game/components/tile_component.dart';
@@ -136,12 +137,12 @@ class BoardComponent extends PositionComponent {
     final row = (localPos.y / cellSize).floor();
     final col = (localPos.x / cellSize).floor();
 
-    print('🎯 Drop position: global=$globalPosition, local=$localPos');
-    print('🎯 Grid position: row=$row, col=$col');
+    LogService.i('🎯 Drop position: global=$globalPosition, local=$localPos');
+    LogService.i('🎯 Grid position: row=$row, col=$col');
 
     // Tahta sınırları içinde mi?
     if (row < 0 || row >= boardSize || col < 0 || col >= boardSize) {
-      print('⚠️ Tahta dışında bırakıldı');
+      LogService.i('⚠️ Tahta dışında bırakıldı');
       tile.returnToOriginal();
       return;
     }
@@ -150,7 +151,7 @@ class BoardComponent extends PositionComponent {
 
     // Hücre boş mu?
     if (targetCell.tile != null) {
-      print('⚠️ Hücre dolu: ($row, $col)');
+      LogService.i('⚠️ Hücre dolu: ($row, $col)');
       tile.returnToOriginal();
       return;
     }
@@ -165,6 +166,6 @@ class BoardComponent extends PositionComponent {
     targetCell.tile = tile;
     placedTiles.add(tile);
 
-    print('✅ Tile yerleştirildi: ${tile.letter} at ($row, $col)');
+    LogService.i('✅ Tile yerleştirildi: ${tile.letter} at ($row, $col)');
   }
 }

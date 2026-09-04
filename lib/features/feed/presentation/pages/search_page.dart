@@ -96,13 +96,13 @@ class _SearchPageState extends ConsumerState<SearchPage>
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: [
-                  colorScheme.surfaceContainerHigh.withOpacity(0.6),
-                  colorScheme.surfaceContainerHigh.withOpacity(0.4),
+                  colorScheme.surfaceContainerHigh.withValues(alpha: 0.6),
+                  colorScheme.surfaceContainerHigh.withValues(alpha: 0.4),
                 ],
               ),
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
-                color: Colors.white.withOpacity(0.1),
+                color: Colors.white.withValues(alpha: 0.1),
                 width: 1,
               ),
             ),
@@ -118,7 +118,7 @@ class _SearchPageState extends ConsumerState<SearchPage>
               decoration: InputDecoration(
                 hintText: 'Kullanıcı veya etiket ara...',
                 hintStyle: TextStyle(
-                  color: colorScheme.onSurface.withOpacity(0.5),
+                  color: colorScheme.onSurface.withValues(alpha: 0.5),
                   fontSize: 15,
                 ),
                 border: InputBorder.none,
@@ -128,14 +128,14 @@ class _SearchPageState extends ConsumerState<SearchPage>
                 ),
                 prefixIcon: Icon(
                   IconsaxPlusLinear.search_normal_1,
-                  color: colorScheme.primary.withOpacity(0.7),
+                  color: colorScheme.primary.withValues(alpha: 0.7),
                   size: 22,
                 ),
                 suffixIcon: _searchQuery.isNotEmpty
                     ? IconButton(
                         icon: Icon(
                           Icons.close_rounded,
-                          color: colorScheme.onSurface.withOpacity(0.6),
+                          color: colorScheme.onSurface.withValues(alpha: 0.6),
                           size: 20,
                         ),
                         onPressed: () {
@@ -234,7 +234,7 @@ class _SearchPageState extends ConsumerState<SearchPage>
         );
       },
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (_, __) => _buildEmptyState(
+      error: (_, _) => _buildEmptyState(
         icon: Icons.error_outline_rounded,
         title: 'Hata',
         subtitle: 'Geçmiş yüklenemedi',
@@ -258,13 +258,13 @@ class _SearchPageState extends ConsumerState<SearchPage>
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: [
-                  colorScheme.surfaceContainerHigh.withOpacity(0.5),
-                  colorScheme.surfaceContainerHigh.withOpacity(0.3),
+                  colorScheme.surfaceContainerHigh.withValues(alpha: 0.5),
+                  colorScheme.surfaceContainerHigh.withValues(alpha: 0.3),
                 ],
               ),
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
-                color: Colors.white.withOpacity(0.1),
+                color: Colors.white.withValues(alpha: 0.1),
                 width: 1,
               ),
             ),
@@ -314,8 +314,8 @@ class _SearchPageState extends ConsumerState<SearchPage>
                             shape: BoxShape.circle,
                             gradient: LinearGradient(
                               colors: [
-                                colorScheme.primary.withOpacity(0.3),
-                                colorScheme.secondary.withOpacity(0.3),
+                                colorScheme.primary.withValues(alpha: 0.3),
+                                colorScheme.secondary.withValues(alpha: 0.3),
                               ],
                             ),
                           ),
@@ -350,7 +350,7 @@ class _SearchPageState extends ConsumerState<SearchPage>
                                 item.subtitle!,
                                 style: TextStyle(
                                   fontSize: 13,
-                                  color: colorScheme.onSurface.withOpacity(0.6),
+                                  color: colorScheme.onSurface.withValues(alpha: 0.6),
                                 ),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
@@ -367,7 +367,7 @@ class _SearchPageState extends ConsumerState<SearchPage>
                           Icon(
                             Icons.history_rounded,
                             size: 18,
-                            color: colorScheme.onSurface.withOpacity(0.4),
+                            color: colorScheme.onSurface.withValues(alpha: 0.4),
                           ),
                           const SizedBox(width: 8),
                           IconButton(
@@ -378,7 +378,7 @@ class _SearchPageState extends ConsumerState<SearchPage>
                             icon: Icon(
                               Icons.close_rounded,
                               size: 18,
-                              color: colorScheme.onSurface.withOpacity(0.5),
+                              color: colorScheme.onSurface.withValues(alpha: 0.5),
                             ),
                             constraints: const BoxConstraints(),
                             padding: EdgeInsets.zero,
@@ -464,7 +464,7 @@ class _SearchPageState extends ConsumerState<SearchPage>
               ),
             ),
           ),
-          error: (_, __) => const SliverToBoxAdapter(child: SizedBox.shrink()),
+          error: (_, _) => const SliverToBoxAdapter(child: SizedBox.shrink()),
         ),
 
         // Tags Section
@@ -518,7 +518,7 @@ class _SearchPageState extends ConsumerState<SearchPage>
             );
           },
           loading: () => const SliverToBoxAdapter(child: SizedBox.shrink()),
-          error: (_, __) => const SliverToBoxAdapter(child: SizedBox.shrink()),
+          error: (_, _) => const SliverToBoxAdapter(child: SizedBox.shrink()),
         ),
 
         const SliverToBoxAdapter(child: SizedBox(height: 80)),
@@ -537,13 +537,13 @@ class _SearchPageState extends ConsumerState<SearchPage>
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: [
-                colorScheme.surfaceContainerHigh.withOpacity(0.6),
-                colorScheme.surfaceContainerHigh.withOpacity(0.4),
+                colorScheme.surfaceContainerHigh.withValues(alpha: .6),
+                colorScheme.surfaceContainerHigh.withValues(alpha: 0.4),
               ],
             ),
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color: Colors.white.withOpacity(0.1),
+              color: Colors.white.withValues(alpha: 0.1),
               width: 1,
             ),
           ),
@@ -604,7 +604,7 @@ class _SearchPageState extends ConsumerState<SearchPage>
                           Text(
                             '@${user.userName}',
                             style: TextStyle(
-                              color: colorScheme.onSurface.withOpacity(0.6),
+                              color: colorScheme.onSurface.withValues(alpha: 0.6),
                               fontSize: 14,
                             ),
                             maxLines: 1,
@@ -615,7 +615,7 @@ class _SearchPageState extends ConsumerState<SearchPage>
                     ),
                     Icon(
                       Icons.chevron_right_rounded,
-                      color: colorScheme.onSurface.withOpacity(0.3),
+                      color: colorScheme.onSurface.withValues(alpha: 0.3),
                       size: 24,
                     ),
                   ],
@@ -644,13 +644,13 @@ class _SearchPageState extends ConsumerState<SearchPage>
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: [
-                colorScheme.surfaceContainerHigh.withOpacity(0.6),
-                colorScheme.surfaceContainerHigh.withOpacity(0.4),
+                colorScheme.surfaceContainerHigh.withValues(alpha: 0.6),
+                colorScheme.surfaceContainerHigh.withValues(alpha: 0.4),
               ],
             ),
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color: Colors.white.withOpacity(0.1),
+              color: Colors.white.withValues(alpha: 0.1),
               width: 1,
             ),
           ),
@@ -677,8 +677,8 @@ class _SearchPageState extends ConsumerState<SearchPage>
                         shape: BoxShape.circle,
                         gradient: LinearGradient(
                           colors: [
-                            colorScheme.secondary.withOpacity(0.3),
-                            colorScheme.tertiary.withOpacity(0.3),
+                            colorScheme.secondary.withValues(alpha: 0.3),
+                            colorScheme.tertiary.withValues(alpha: 0.3),
                           ],
                         ),
                       ),
@@ -707,7 +707,7 @@ class _SearchPageState extends ConsumerState<SearchPage>
                           Text(
                             '$postCount gönderi',
                             style: TextStyle(
-                              color: colorScheme.onSurface.withOpacity(0.6),
+                              color: colorScheme.onSurface.withValues(alpha: 0.6),
                               fontSize: 13,
                             ),
                           ),
@@ -721,7 +721,7 @@ class _SearchPageState extends ConsumerState<SearchPage>
                       },
                       icon: Icon(
                         isFollowing ? IconsaxPlusBold.heart : IconsaxPlusLinear.heart,
-                        color: isFollowing ? Colors.red : colorScheme.onSurface.withOpacity(0.5),
+                        color: isFollowing ? Colors.red : colorScheme.onSurface.withValues(alpha: 0.5),
                         size: 22,
                       ),
                     ),
@@ -748,7 +748,7 @@ class _SearchPageState extends ConsumerState<SearchPage>
           Icon(
             icon,
             size: 80,
-            color: colorScheme.onSurface.withOpacity(0.3),
+            color: colorScheme.onSurface.withValues(alpha: 0.3),
           ),
           const SizedBox(height: 16),
           Text(
@@ -756,7 +756,7 @@ class _SearchPageState extends ConsumerState<SearchPage>
             style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.bold,
-              color: colorScheme.onSurface.withOpacity(0.7),
+              color: colorScheme.onSurface.withValues(alpha: 0.7),
             ),
           ),
           const SizedBox(height: 8),
@@ -764,7 +764,7 @@ class _SearchPageState extends ConsumerState<SearchPage>
             subtitle,
             style: TextStyle(
               fontSize: 15,
-              color: colorScheme.onSurface.withOpacity(0.5),
+              color: colorScheme.onSurface.withValues(alpha: 0.5),
             ),
           ),
         ],

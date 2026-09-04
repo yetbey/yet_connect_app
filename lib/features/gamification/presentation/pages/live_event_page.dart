@@ -347,7 +347,7 @@ class _LiveEventPageState extends ConsumerState<LiveEventPage> {
                   if (!isMe)
                     Text(
                       displayName,
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.bold,
                         color: AppColors.primary,

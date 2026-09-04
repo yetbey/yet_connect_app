@@ -85,7 +85,11 @@ class ScoreCalculator {
   }
 
   // Yatay kelimeyi al
-  static String _getHorizontalWord(int row, int col, List<List<BoardCell>> board) {
+  static String _getHorizontalWord(
+    int row,
+    int col,
+    List<List<BoardCell>> board,
+  ) {
     int start = col;
     int end = col;
 
@@ -95,7 +99,8 @@ class ScoreCalculator {
     }
 
     // Sağa git
-    while (end < ScrabbleConstants.boardSize - 1 && board[row][end + 1].letter != null) {
+    while (end < ScrabbleConstants.boardSize - 1 &&
+        board[row][end + 1].letter != null) {
       end++;
     }
 
@@ -110,7 +115,11 @@ class ScoreCalculator {
   }
 
   // Dikey kelimeyi al
-  static String _getVerticalWord(int row, int col, List<List<BoardCell>> board) {
+  static String _getVerticalWord(
+    int row,
+    int col,
+    List<List<BoardCell>> board,
+  ) {
     int start = row;
     int end = row;
 
@@ -120,7 +129,8 @@ class ScoreCalculator {
     }
 
     // Aşağı git
-    while (end < ScrabbleConstants.boardSize - 1 && board[end + 1][col].letter != null) {
+    while (end < ScrabbleConstants.boardSize - 1 &&
+        board[end + 1][col].letter != null) {
       end++;
     }
 
@@ -136,47 +146,61 @@ class ScoreCalculator {
 
   // Kelime tile'larını al
   static List<PlacedTile> _getWordTiles(
-      int row,
-      int col,
-      List<List<BoardCell>> board,
-      bool horizontal,
-      ) {
+    int row,
+    int col,
+    List<List<BoardCell>> board,
+    bool horizontal,
+  ) {
     final tiles = <PlacedTile>[];
 
     if (horizontal) {
       int start = col;
-      while (start > 0 && board[row][start - 1].letter != null) start--;
+      while (start > 0 && board[row][start - 1].letter != null) {
+        start--;
+      }
 
       int end = col;
-      while (end < ScrabbleConstants.boardSize - 1 && board[row][end + 1].letter != null) end++;
+      while (end < ScrabbleConstants.boardSize - 1 &&
+          board[row][end + 1].letter != null) {
+        end++;
+      }
 
       for (int i = start; i <= end; i++) {
         final cell = board[row][i];
         if (cell.letter != null) {
-          tiles.add(PlacedTile(
-            letter: cell.letter!,
-            row: row,
-            col: i,
-            points: cell.points ?? 0,
-          ));
+          tiles.add(
+            PlacedTile(
+              letter: cell.letter!,
+              row: row,
+              col: i,
+              points: cell.points ?? 0,
+            ),
+          );
         }
       }
     } else {
       int start = row;
-      while (start > 0 && board[start - 1][col].letter != null) start--;
+      while (start > 0 && board[start - 1][col].letter != null) {
+        start--;
+      }
 
       int end = row;
-      while (end < ScrabbleConstants.boardSize - 1 && board[end + 1][col].letter != null) end++;
+      while (end < ScrabbleConstants.boardSize - 1 &&
+          board[end + 1][col].letter != null) {
+        end++;
+      }
 
       for (int i = start; i <= end; i++) {
         final cell = board[i][col];
         if (cell.letter != null) {
-          tiles.add(PlacedTile(
-            letter: cell.letter!,
-            row: i,
-            col: col,
-            points: cell.points ?? 0,
-          ));
+          tiles.add(
+            PlacedTile(
+              letter: cell.letter!,
+              row: i,
+              col: col,
+              points: cell.points ?? 0,
+            ),
+          );
         }
       }
     }

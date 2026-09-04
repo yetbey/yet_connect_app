@@ -34,7 +34,7 @@ class DatabaseService {
       if (kIsWeb) {
         // Web platformu için özel veritabanı başlatıcısı
         databaseFactory = databaseFactoryFfiWeb;
-        final path = _databaseName; // Web tarafında path yerine sadece isim kullanılır
+        const path = _databaseName; // Web tarafında path yerine sadece isim kullanılır
         LogService.i('🌐 Web veritabanı yolu: $path');
         return await openDatabase(
           path,
