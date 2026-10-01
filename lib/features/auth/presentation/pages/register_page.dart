@@ -30,6 +30,8 @@ import 'package:yet_x_app/shared/widgets/custom_text_form_field.dart';
 import 'package:yet_x_app/features/auth/presentation/providers/auth_provider.dart';
 import 'package:yet_x_app/core/utils/validators.dart';
 import 'package:yet_x_app/config/routes/app_routes.dart';
+import 'package:yet_x_app/core/utils/password_breach_checker.dart';
+import 'package:yet_x_app/core/utils/utils.dart';
 
 /// Register page - New user account creation screen
 ///
@@ -186,6 +188,15 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
   Future<void> _handleRegister() async {
     // If form is not valid, abort early.
     if (!_formKey.currentState!.validate()) return;
+
+    if (await PasswordBreachChecker.isBreached(_passwordController.text)) {
+      if (!mounted) return;
+      Utils.showSnackBar(
+        text: 'BU şifre veri ihlallerinde ortaya çıkmış. Lütfen başka şifre seçiniz.',
+        isError: true,
+      );
+      return;
+    }
 
     // Store email for navigation after registration.
     final email = _emailController.text.trim();

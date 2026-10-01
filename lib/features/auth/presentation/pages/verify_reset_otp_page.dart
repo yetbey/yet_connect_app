@@ -21,6 +21,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:yet_x_app/config/routes/app_routes.dart';
 import 'package:yet_x_app/core/services/navigation_service.dart';
 import 'package:yet_x_app/core/utils/error_handler.dart';
+import 'package:yet_x_app/core/utils/password_breach_checker.dart';
 import 'package:yet_x_app/core/utils/utils.dart';
 import 'package:yet_x_app/core/utils/validators.dart';
 import 'package:yet_x_app/features/auth/data/auth_repository.dart';
@@ -153,6 +154,15 @@ class _VerifyResetOtpPageState extends ConsumerState<VerifyResetOtpPage> {
   Future<void> _handleVerifyAndReset() async {
     // If form is not valid, abort early.
     if (!_formKey.currentState!.validate()) return;
+
+    if (await PasswordBreachChecker.isBreached(_newPasswordController.text)) {
+      if (!mounted) return;
+      Utils.showSnackBar(
+        text: 'Bu şifre veri ihlallerinde ortaya çıkmış. Lütfen başka bir şifre seç.',
+        isError: true,
+      );
+      return;
+    }
 
     // Set loading state.
     setState(() => _isLoading = true);
