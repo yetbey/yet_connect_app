@@ -15,8 +15,11 @@
 
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:yet_x_app/core/services/navigation_service.dart';
+import 'package:yet_x_app/core/utils/formatters.dart';
+import 'package:yet_x_app/core/utils/validators.dart';
 import 'package:yet_x_app/generated/locale_keys.g.dart';
 import 'package:yet_x_app/shared/widgets/custom_auth_button.dart';
 import 'package:yet_x_app/shared/widgets/custom_text_form_field.dart';
@@ -93,11 +96,12 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       // Perform sign-in.
       await authNotifier.signIn(
         email: email,
-        password: _passwordController.text.trim(),
+        password: _passwordController.text,
       );
 
       // If successfully logged in and widget is still mounted, navigate to home.
       if (mounted && ref.read(authProvider).isLoggedIn) {
+        TextInput.finishAutofillContext();
         NavigationService.toNamed(AppRoutes.home);
       }
     } catch (e) {
@@ -119,61 +123,6 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       }
       // Other errors are handled by the auth provider.
     }
-  }
-
-  // ============================================================================
-  // EMAIL VALIDATOR
-  // ============================================================================
-
-  /// Validates the email input.
-  ///
-  /// Checks:
-  /// - Non-empty value.
-  /// - Contains "@".
-  /// - Matches a basic email pattern.
-  ///
-  /// Returns an error message string if invalid, otherwise `null`.
-  String? _validateEmail(String? value) {
-    if (value == null || value.isEmpty) {
-      return LocaleKeys.validation_email_required.tr();
-    }
-
-    if (!value.contains('@')) {
-      return LocaleKeys.validation_invalid_email.tr();
-    }
-
-    final emailRegex = RegExp(
-      r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',
-    );
-
-    if (!emailRegex.hasMatch(value)) {
-      return LocaleKeys.validation_invalid_email.tr();
-    }
-
-    return null;
-  }
-
-  // ============================================================================
-  // PASSWORD VALIDATOR
-  // ============================================================================
-
-  /// Validates the password input.
-  ///
-  /// Checks:
-  /// - Non-empty value.
-  /// - Minimum length of 6 characters.
-  ///
-  /// Returns an error message string if invalid, otherwise `null`.
-  String? _validatePassword(String? value) {
-    if (value == null || value.isEmpty) {
-      return LocaleKeys.validation_password_required.tr();
-    }
-
-    if (value.length < 6) {
-      return LocaleKeys.validation_password_min_length.tr();
-    }
-
-    return null;
   }
 
   // ============================================================================
@@ -229,7 +178,10 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       controller: _emailController,
       keyboardType: TextInputType.emailAddress,
       textCapitalization: TextCapitalization.none,
-      validator: _validateEmail,
+      validator: Validators.email,
+      textInputFormatter: [NoSpaceFormatter(), LowerCaseFormatter()],
+      autofillHints: const [AutofillHints.username, AutofillHints.email],
+      textInputAction: TextInputAction.next,
       prefixIcon: const Icon(
         Icons.email_outlined,
         color: Colors.white54,
@@ -246,7 +198,10 @@ class _LoginPageState extends ConsumerState<LoginPage> {
           hintText: LocaleKeys.auth_password.tr(),
           obscureText: !isVisible,
           controller: _passwordController,
-          validator: _validatePassword,
+          validator: Validators.loginPassword,
+          autofillHints: const [AutofillHints.password],
+          textInputAction: TextInputAction.done,
+          onFieldSubmitted: (_) => _handleLogin(),
           prefixIcon: const Icon(
             Icons.lock_outline_rounded,
             color: Colors.white54,
@@ -261,7 +216,9 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                   : Icons.visibility_off_rounded,
               color: Colors.white54,
             ),
-            tooltip: isVisible ? LocaleKeys.auth_hide_password.tr() : LocaleKeys.auth_show_password.tr(),
+            tooltip: isVisible
+                ? LocaleKeys.auth_hide_password.tr()
+                : LocaleKeys.auth_show_password.tr(),
           ),
         );
       },
@@ -293,9 +250,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       children: [
         Text(
           LocaleKeys.auth_dont_have_account.tr(),
-          style: theme.textTheme.bodyMedium?.copyWith(
-            color: Colors.white70,
-          ),
+          style: theme.textTheme.bodyMedium?.copyWith(color: Colors.white70),
         ),
         TextButton(
           onPressed: () => NavigationService.toNamed(AppRoutes.register),
@@ -318,7 +273,11 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       onPressed: authState.isLoading
           ? null
           : () => ref.read(authProvider.notifier).signInWithGoogle(),
-      icon: const FaIcon(FontAwesomeIcons.google, size: 20, color: Colors.white),
+      icon: const FaIcon(
+        FontAwesomeIcons.google,
+        size: 20,
+        color: Colors.white,
+      ),
       label: Text(
         'Google ile Giriş Yap',
         style: theme.textTheme.bodyLarge?.copyWith(
@@ -330,9 +289,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
         side: const BorderSide(color: Colors.white54, width: 1.5),
         padding: const EdgeInsets.symmetric(vertical: 16),
         minimumSize: const Size(double.infinity, 56),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
     );
   }
@@ -373,53 +330,55 @@ class _LoginPageState extends ConsumerState<LoginPage> {
           padding: const EdgeInsets.all(20),
           child: Form(
             key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Back button.
-                _buildBackButton(theme),
-                const SizedBox(height: 20),
-
-                // Header section.
-                _buildHeader(theme),
-                const SizedBox(height: 40),
-
-                // Form section.
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 12),
-                  child: Column(
-                    children: [
-                      _buildEmailField(),
-                      const SizedBox(height: 16),
-                      _buildPasswordField(),
-                      const SizedBox(height: 32),
-
-                      // Login button.
-                      CustomAuthButton(
-                        label: LocaleKeys.auth_login.tr(),
-                        isLoading: authState.isLoading,
-                        onTap: _handleLogin,
-                      ),
-                      const SizedBox(height: 16),
-
-                      // Forgot password link.
-                      _buildForgotPasswordButton(theme),
-                      const SizedBox(height: 24),
-
-                      // Divider
-                      _buildDivider(theme),
-                      const SizedBox(height: 24),
-
-                      // Google Sign-In button
-                      _buildGoogleSignInButton(theme),
-                      const SizedBox(height: 24),
-
-                      // Register link.
-                      _buildRegisterLink(theme),
-                    ],
+            child: AutofillGroup(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Back button.
+                  _buildBackButton(theme),
+                  const SizedBox(height: 20),
+              
+                  // Header section.
+                  _buildHeader(theme),
+                  const SizedBox(height: 40),
+              
+                  // Form section.
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    child: Column(
+                      children: [
+                        _buildEmailField(),
+                        const SizedBox(height: 16),
+                        _buildPasswordField(),
+                        const SizedBox(height: 32),
+              
+                        // Login button.
+                        CustomAuthButton(
+                          label: LocaleKeys.auth_login.tr(),
+                          isLoading: authState.isLoading,
+                          onTap: _handleLogin,
+                        ),
+                        const SizedBox(height: 16),
+              
+                        // Forgot password link.
+                        _buildForgotPasswordButton(theme),
+                        const SizedBox(height: 24),
+              
+                        // Divider
+                        _buildDivider(theme),
+                        const SizedBox(height: 24),
+              
+                        // Google Sign-In button
+                        _buildGoogleSignInButton(theme),
+                        const SizedBox(height: 24),
+              
+                        // Register link.
+                        _buildRegisterLink(theme),
+                      ],
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),

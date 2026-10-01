@@ -127,7 +127,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
     });
 
     // If username is too short, abort check.
-    if (value.length < 3) {
+    if (Validators.username(value) != null) {
       setState(() => _isCheckingUsername = false);
       return;
     }
@@ -192,7 +192,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
     if (await PasswordBreachChecker.isBreached(_passwordController.text)) {
       if (!mounted) return;
       Utils.showSnackBar(
-        text: 'BU şifre veri ihlallerinde ortaya çıkmış. Lütfen başka şifre seçiniz.',
+        text: LocaleKeys.validation_password_breached.tr(),
         isError: true,
       );
       return;
@@ -207,10 +207,10 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
     // Perform registration with all user data.
     await authNotifier.register(
       email: email,
-      password: _passwordController.text.trim(),
-      fullName: _fullNameController.text.trim(),
+      password: _passwordController.text,
+      fullName: _fullNameController.text.trim().replaceAll(RegExp(r'\s+'), ' '),
       userName: _userNameController.text.trim(),
-      phoneNumber: _phoneNumberController.text.trim(),
+      phoneNumber: Validators.normalizePhone(_phoneNumberController.text) ?? '',
     );
 
     // Navigate to email verification if registration was successful.
@@ -265,6 +265,8 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
         TitleCaseFormatter(),
         LengthLimitingTextInputFormatter(50),
       ],
+      autofillHints: const [AutofillHints.name],
+      textInputAction: TextInputAction.next,
       prefixIcon: const Icon(
         Icons.person_outline_rounded,
         color: Colors.white54,
@@ -284,6 +286,8 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
         NoSpaceFormatter(),
         LowerCaseFormatter(),
       ],
+      autofillHints: const [AutofillHints.email],
+      textInputAction: TextInputAction.next,
       prefixIcon: const Icon(
         Icons.email_outlined,
         color: Colors.white54,
@@ -305,6 +309,8 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
         FilteringTextInputFormatter.allow(RegExp(r'[a-z0-9_]')),
         LengthLimitingTextInputFormatter(20),
       ],
+      autofillHints: const [AutofillHints.newUsername],
+      textInputAction: TextInputAction.next,
       onChanged: _onUsernameChanged,
       prefixIcon: const Icon(
         Icons.alternate_email_rounded,
@@ -336,6 +342,8 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
           obscureText: !isVisible,
           controller: _passwordController,
           validator: Validators.password,
+          autofillHints: const [AutofillHints.newPassword],
+          textInputAction: TextInputAction.next,
           prefixIcon: const Icon(
             Icons.lock_outline_rounded,
             color: Colors.white54,
@@ -366,9 +374,12 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
       keyboardType: TextInputType.phone,
       validator: Validators.phone,
       textInputFormatter: [
-        FilteringTextInputFormatter.digitsOnly,
-        LengthLimitingTextInputFormatter(13),
+        FilteringTextInputFormatter.allow(RegExp(r'[0-9+\s()-]')),
+        LengthLimitingTextInputFormatter(20),
       ],
+      autofillHints: const [AutofillHints.telephoneNumber],
+      textInputAction: TextInputAction.done,
+      onFieldSubmitted: (_) => _handleRegister(),
       prefixIcon: const Icon(
         Icons.phone_outlined,
         color: Colors.white54,
@@ -465,64 +476,66 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
           padding: const EdgeInsets.all(20),
           child: Form(
             key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Back button.
-                _buildBackButton(theme),
-                const SizedBox(height: 20),
-
-                // Header section.
-                _buildHeader(theme),
-                const SizedBox(height: 40),
-
-                // Form section.
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 12),
-                  child: Column(
-                    children: [
-                      // Full name field.
-                      _buildFullNameField(),
-                      const SizedBox(height: 16),
-
-                      // Email field.
-                      _buildEmailField(),
-                      const SizedBox(height: 16),
-
-                      // Username field.
-                      _buildUsernameField(),
-                      const SizedBox(height: 16),
-
-                      // Password field.
-                      _buildPasswordField(),
-                      const SizedBox(height: 16),
-
-                      // Phone number field.
-                      _buildPhoneNumberField(),
-                      const SizedBox(height: 32),
-
-                      // Register button.
-                      CustomAuthButton(
-                        label: LocaleKeys.auth_register.tr(),
-                        isLoading: authState.isLoading,
-                        onTap: _handleRegister,
-                      ),
-                      const SizedBox(height: 24),
-
-                      // Divider
-                      _buildDivider(theme),
-                      const SizedBox(height: 24),
-
-                      // Google Sign-In button
-                      _buildGoogleSignInButton(theme),
-                      const SizedBox(height: 24),
-
-                      // Login link.
-                      _buildLoginLink(theme),
-                    ],
+            child: AutofillGroup(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Back button.
+                  _buildBackButton(theme),
+                  const SizedBox(height: 20),
+              
+                  // Header section.
+                  _buildHeader(theme),
+                  const SizedBox(height: 40),
+              
+                  // Form section.
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    child: Column(
+                      children: [
+                        // Full name field.
+                        _buildFullNameField(),
+                        const SizedBox(height: 16),
+              
+                        // Email field.
+                        _buildEmailField(),
+                        const SizedBox(height: 16),
+              
+                        // Username field.
+                        _buildUsernameField(),
+                        const SizedBox(height: 16),
+              
+                        // Password field.
+                        _buildPasswordField(),
+                        const SizedBox(height: 16),
+              
+                        // Phone number field.
+                        _buildPhoneNumberField(),
+                        const SizedBox(height: 32),
+              
+                        // Register button.
+                        CustomAuthButton(
+                          label: LocaleKeys.auth_register.tr(),
+                          isLoading: authState.isLoading,
+                          onTap: _handleRegister,
+                        ),
+                        const SizedBox(height: 24),
+              
+                        // Divider
+                        _buildDivider(theme),
+                        const SizedBox(height: 24),
+              
+                        // Google Sign-In button
+                        _buildGoogleSignInButton(theme),
+                        const SizedBox(height: 24),
+              
+                        // Login link.
+                        _buildLoginLink(theme),
+                      ],
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
