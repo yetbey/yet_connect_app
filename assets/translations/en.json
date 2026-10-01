@@ -26,7 +26,8 @@
     "colors": "Colors",
     "are_you_sure": "Are you sure?",
     "attention": "Attention!",
-    "back": "Back"
+    "back": "Back",
+    "retry": "Retry"
   },
   "auth": {
     "login": "Login",
@@ -86,7 +87,8 @@
     "resend_code": "Resend code",
     "check_email_expired_ten_minutes": "Check your email for the 8-digit verification code. The code expires in 10 minutes.",
     "forgot_password_subtitle": "We'll send a verification code to your email.",
-    "verify": "Verify"
+    "verify": "Verify",
+    "profile_load_failed": "Couldn't load your profile. Check your connection and try again."
   },
   "validation": {
     "required_field": "{} cannot be empty.",

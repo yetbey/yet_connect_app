@@ -1,39 +1,21 @@
-// ============================================================================
-// AUTH WRAPPER
-// ============================================================================
-// This widget acts as the authentication gate for the application.
-// It determines which screen to show based on authentication state and
-// handles zombie session detection.
-//
-// Features:
-// - Authentication state monitoring
-// - User profile validation
-// - Zombie session detection and cleanup
-// - Loading state handling
-// - Automatic navigation based on auth state
-//
-// Flow:
-// 1. Check if auth state is loading -> show loading indicator
-// 2. Check if user is logged in -> validate profile
-// 3. If profile is null but logged in -> fetch profile or sign out
-// 4. If not logged in -> show start page
-// ============================================================================
-
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:yet_x_app/features/auth/presentation/pages/start_page.dart';
-import 'package:yet_x_app/features/dashboard/presentation/pages/navigation_page.dart';
-import 'package:yet_x_app/features/auth/presentation/providers/auth_provider.dart';
-import 'package:yet_x_app/features/profile/presentation/providers/user_provider.dart';
 import 'package:yet_x_app/core/utils/logger_service.dart';
+import 'package:yet_x_app/features/auth/data/auth_repository.dart';
+import 'package:yet_x_app/features/auth/presentation/pages/start_page.dart';
+import 'package:yet_x_app/features/auth/presentation/providers/auth_provider.dart';
+import 'package:yet_x_app/features/dashboard/presentation/pages/navigation_page.dart';
+import 'package:yet_x_app/features/profile/presentation/providers/user_provider.dart';
 import 'package:yet_x_app/generated/locale_keys.g.dart';
 
-/// Authentication wrapper - Main entry point for auth flow
+/// Kimlik doğrulama kapısı.
 ///
-/// This widget monitors authentication state and determines which screen
-/// to display. It also handles edge cases like deleted user accounts
-/// (zombie sessions) by validating the user profile on startup.
+/// - Giriş yoksa: StartPage
+/// - Giriş var, profil yüklüyse: NavigationPage
+/// - Giriş var, profil yoksa: profili yükler. Yüklenemezse hesabın silinip
+///   silinmediğine bakar. Silinmişse çıkış yaptırır, ağ sorunuysa
+///   "Tekrar dene" ekranı gösterir (kullanıcıyı atmaz).
 class AuthWrapper extends ConsumerStatefulWidget {
   const AuthWrapper({super.key});
 
@@ -42,134 +24,133 @@ class AuthWrapper extends ConsumerStatefulWidget {
 }
 
 class _AuthWrapperState extends ConsumerState<AuthWrapper> {
-  // ============================================================================
-  // LIFECYCLE METHODS
-  // ============================================================================
+  bool _checking = false;
+  bool _loadFailed = false;
 
-  /// Initialize state and trigger user session validation.
   @override
   void initState() {
     super.initState();
-    // Start session check when widget is first created.
-    _checkUserSession();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _validateSession());
   }
 
-  // ============================================================================
-  // SESSION VALIDATION LOGIC
-  // ============================================================================
+  Future<void> _validateSession() async {
+    if (_checking) return;
 
-  /// Validates the current user session.
-  ///
-  /// This method performs zombie session detection by:
-  /// 1. Checking if user is logged in but profile is not loaded
-  /// 2. Attempting to fetch user profile from backend
-  /// 3. If profile doesn't exist (deleted account), signing out user
-  /// 4. Preventing access to app with invalid session
-  ///
-  /// A zombie session occurs when a user's auth token exists but their
-  /// account has been deleted from the database.
-  Future<void> _checkUserSession() async {
-    // Wait for the current build cycle to complete before reading providers.
-    // This prevents "Cannot read provider during build" errors.
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      // Read current auth and user states.
-      final authState = ref.read(authProvider);
-      final userState = ref.read(userProvider);
+    final auth = ref.read(authProvider);
+    if (!auth.isLoggedIn || ref.read(userProvider).currentUser != null) return;
 
-      // Check for zombie session: logged in but no user profile in memory.
-      if (authState.isLoggedIn && userState.currentUser == null) {
-        try {
-          LogService.i('AuthWrapper: Validating user profile...');
+    _checking = true;
+    if (mounted) setState(() => _loadFailed = false);
 
-          // Attempt to fetch user profile from backend.
-          await ref.read(userProvider.notifier).fetchMyProfile();
+    try {
+      LogService.i('AuthWrapper: profil yükleniyor...');
+      await ref.read(userProvider.notifier).fetchMyProfile();
+    } catch (e) {
+      LogService.e('AuthWrapper: profil yüklenemedi', e);
+    }
 
-          // Verify that profile was successfully loaded.
-          final user = ref.read(userProvider).currentUser;
+    if (!mounted) {
+      _checking = false;
+      return;
+    }
 
-          if (user == null) {
-            // Profile doesn't exist in database - account was deleted.
-            throw Exception('User not found in database (deleted account)');
-          }
-        } catch (e) {
-          // Handle zombie session: force sign out.
-          LogService.e('AuthWrapper: Zombie session detected. Signing out.', e);
+    // Profil geldiyse bitti.
+    if (ref.read(userProvider).currentUser != null) {
+      _checking = false;
+      return;
+    }
 
-          // Clear local auth session since user no longer exists.
-          await ref.read(authProvider.notifier).signOut();
-        }
-      }
-    });
+    // Gelmediyse sebebini ayır: silinmiş hesap mı, bağlantı sorunu mu?
+    final status = await ref.read(authRepositoryProvider).checkAccountStatus();
+
+    if (!mounted) {
+      _checking = false;
+      return;
+    }
+
+    if (status == AccountStatus.deleted) {
+      LogService.e('AuthWrapper: hesap silinmiş, çıkış yapılıyor.', status);
+      _checking = false;
+      await ref.read(authProvider.notifier).signOut();
+      return;
+    }
+
+    setState(() => _loadFailed = true);
+    _checking = false;
   }
 
-  // ============================================================================
-  // UI BUILDERS
-  // ============================================================================
-
-  /// Builds a loading screen for authentication state.
-  Widget _buildAuthLoadingScreen() {
-    return const Scaffold(
-      body: Center(
-        child: CircularProgressIndicator(),
-      ),
-    );
-  }
-
-  /// Builds a loading screen for profile validation.
-  Widget _buildProfileLoadingScreen() {
+  Widget _buildLoading({bool withText = false}) {
     return Scaffold(
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             const CircularProgressIndicator(),
-            const SizedBox(height: 16),
-            Text(
-              LocaleKeys.auth_validating_profile.tr(),
-              style: const TextStyle(
-                fontSize: 16,
-                color: Colors.white70,
+            if (withText) ...[
+              const SizedBox(height: 16),
+              Text(
+                LocaleKeys.auth_validating_profile.tr(),
+                style: const TextStyle(fontSize: 16, color: Colors.white70),
               ),
-            ),
+            ],
           ],
         ),
       ),
     );
   }
 
-  // ============================================================================
-  // MAIN BUILD METHOD
-  // ============================================================================
+  Widget _buildRetry() {
+    return Scaffold(
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.cloud_off_rounded, size: 56, color: Colors.white54),
+              const SizedBox(height: 16),
+              Text(
+                LocaleKeys.auth_profile_load_failed.tr(),
+                textAlign: TextAlign.center,
+                style: const TextStyle(fontSize: 16, color: Colors.white70),
+              ),
+              const SizedBox(height: 24),
+              FilledButton(
+                onPressed: _validateSession,
+                child: Text(LocaleKeys.common_retry.tr()),
+              ),
+              TextButton(
+                onPressed: () => ref.read(authProvider.notifier).signOut(),
+                child: Text(LocaleKeys.auth_logout.tr()),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
-    // Watch auth and user states for reactive updates.
+    // Giriş yapılınca (veya oturum geri gelince) profili doğrula.
+    ref.listen<AuthState>(authProvider, (prev, next) {
+      final justLoggedIn = next.isLoggedIn && !(prev?.isLoggedIn ?? false);
+      if (justLoggedIn) _validateSession();
+      if (!next.isLoggedIn && _loadFailed) setState(() => _loadFailed = false);
+    });
+
     final authState = ref.watch(authProvider);
     final userState = ref.watch(userProvider);
 
-    // State 1: Authentication state is loading.
-    // Show loading indicator while determining auth status.
-    if (authState.isLoading) {
-      return _buildAuthLoadingScreen();
-    }
+    if (authState.isLoading) return _buildLoading();
 
-    // State 2: User is authenticated.
     if (authState.isLoggedIn) {
-      // State 2a: Profile is not loaded yet.
-      // This is critical - we must validate the profile before
-      // allowing access to the app. The _checkUserSession method
-      // will either load the profile or sign out if it doesn't exist.
       if (userState.currentUser == null) {
-        return _buildProfileLoadingScreen();
+        return _loadFailed ? _buildRetry() : _buildLoading(withText: true);
       }
-
-      // State 2b: Profile is loaded successfully.
-      // User is authenticated and profile exists - show main app.
       return const NavigationPage();
     }
 
-    // State 3: User is not authenticated.
-    // Show start/welcome page with login/register options.
     return const StartPage();
   }
 }

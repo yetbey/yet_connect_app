@@ -56,6 +56,7 @@ class AuthNotifier extends Notifier<AuthState> {
         ref.read(chatListProvider.notifier).clearChats();
       }
     });
+    ref.onDispose(sub.cancel);
 
     final session = Supabase.instance.client.auth.currentSession;
     return AuthState(isLoading: false, isLoggedIn: session != null);

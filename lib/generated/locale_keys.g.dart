@@ -30,6 +30,7 @@ abstract class  LocaleKeys {
   static const common_are_you_sure = 'common.are_you_sure';
   static const common_attention = 'common.attention';
   static const common_back = 'common.back';
+  static const common_retry = 'common.retry';
   static const common = 'common';
   static const auth_login = 'auth.login';
   static const auth_register = 'auth.register';
@@ -89,6 +90,7 @@ abstract class  LocaleKeys {
   static const auth_check_email_expired_ten_minutes = 'auth.check_email_expired_ten_minutes';
   static const auth_forgot_password_subtitle = 'auth.forgot_password_subtitle';
   static const auth_verify = 'auth.verify';
+  static const auth_profile_load_failed = 'auth.profile_load_failed';
   static const auth = 'auth';
   static const validation_required_field = 'validation.required_field';
   static const validation_invalid_email = 'validation.invalid_email';

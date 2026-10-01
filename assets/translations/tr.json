@@ -26,7 +26,8 @@
     "colors": "Renkler",
     "are_you_sure": "Emin misiniz?",
     "attention": "Dikkat!",
-    "back": "Geri"
+    "back": "Geri",
+    "retry": "Tekrar Dene"
   },
   "auth": {
     "login": "Giriş Yap",
@@ -86,7 +87,8 @@
     "resend_code": "Kodu yeniden gönder",
     "check_email_expired_ten_minutes": "8 haneli doğrulama kodunu e-postanızdan kontrol edin. Kod 10 dakika içinde geçerliliğini yitirir.",
     "forgot_password_subtitle": "E-posta adresine doğrulama kodu göndereceğiz.",
-    "verify": "Doğrula"
+    "verify": "Doğrula",
+    "profile_load_failed": "Profil yüklenemedi. Bağlantını kontrol edip tekrar dene."
   },
   "validation": {
     "required_field": "{} boş bırakılamaz.",

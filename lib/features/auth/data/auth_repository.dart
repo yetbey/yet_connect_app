@@ -6,6 +6,10 @@ import 'package:yet_x_app/core/constants/supabase_tables.dart';
 import 'package:yet_x_app/core/services/database_service.dart';
 import 'package:yet_x_app/core/utils/logger_service.dart';
 import 'package:yet_x_app/generated/locale_keys.g.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+
+
+enum AccountStatus { active, deleted, unknown }
 
 /// ---> Verified and Approved <--- \\\
 
@@ -149,14 +153,55 @@ class AuthRepository {
   /// Sign out
   Future<void> signOut() async {
     try {
-      await _db.clearAllData();
-      LogService.i(LocaleKeys.infos_database_clear.tr());
+      await _supabase.rpc('clear_my_fcm_token');
+    } catch (e) {
+      LogService.e('FCM Token temizlenemedş', e);
+    }
 
+    try {
       await _supabase.auth.signOut();
       LogService.i(LocaleKeys.infos_user_logged_out.tr());
     } catch (e) {
       LogService.e(LocaleKeys.errors_logout_error.tr(), e);
-      rethrow;
+    }
+
+    try {
+      await GoogleSignIn().signOut();
+    } catch (_) {}
+
+    try{
+      await _db.clearAllData();
+      LogService.i(LocaleKeys.infos_database_clear.tr());
+    } catch (e) {
+      LogService.e(LocaleKeys.errors_logout_error.tr(), e);
+    }
+  }
+
+  Future<AccountStatus> checkAccountStatus() async {
+    try {
+      final res = await _supabase.auth.getUser();
+      final user = res.user;
+      if (user == null) return AccountStatus.deleted;
+
+      final profile = await _supabase.from(profilesTable.tableName)
+      .select(profilesTable.id).eq(profilesTable.id, user.id).maybeSingle();
+
+      return profile == null ? AccountStatus.deleted : AccountStatus.active;
+    } on AuthRetryableFetchException {
+      return AccountStatus.unknown;
+    } on AuthException catch (e) {
+      final status = e.statusCode?.toString();
+      final msg = e.message.toLowerCase();
+      if (status == '401' ||
+          status == '403' ||
+          status == '404' ||
+          msg.contains('does not exist') ||
+          msg.contains('user_not_found')) {
+        return AccountStatus.deleted;
+      }
+      return AccountStatus.unknown;
+    } catch (_) {
+      return AccountStatus.unknown;
     }
   }
 
