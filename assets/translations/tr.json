@@ -84,7 +84,9 @@
     "password_reset": "Parolayı Sıfırla",
     "set_new_password": "set your new password",
     "resend_code": "Kodu yeniden gönder",
-    "check_email_expired_ten_minutes": "8 haneli doğrulama kodunu e-postanızdan kontrol edin. Kod 10 dakika içinde geçerliliğini yitirir."
+    "check_email_expired_ten_minutes": "8 haneli doğrulama kodunu e-postanızdan kontrol edin. Kod 10 dakika içinde geçerliliğini yitirir.",
+    "forgot_password_subtitle": "E-posta adresine doğrulama kodu göndereceğiz.",
+    "verify": "Doğrula"
   },
   "validation": {
     "required_field": "{} boş bırakılamaz.",

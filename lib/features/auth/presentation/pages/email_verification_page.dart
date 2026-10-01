@@ -23,6 +23,8 @@ import 'package:yet_x_app/features/auth/presentation/providers/auth_provider.dar
 import 'package:yet_x_app/config/routes/app_routes.dart';
 import 'package:yet_x_app/core/services/navigation_service.dart';
 import 'package:yet_x_app/generated/locale_keys.g.dart';
+import 'package:yet_x_app/core/utils/utils.dart';
+import 'package:yet_x_app/core/utils/validators.dart';
 
 /// Email Verification page - OTP code verification screen
 ///
@@ -145,18 +147,29 @@ class _EmailVerificationPageState extends ConsumerState<EmailVerificationPage> {
   Future<void> _verify() async {
     final code = _pinController.text.trim();
 
-    // Ensure exactly 8 digits are entered.
-    if (code.length != 8) return;
+    // Ensure exactly the expected number of digits are entered.
+    if (code.length != Validators.otpLength) return;
 
-    // Call auth provider to verify OTP.
+    if (_email.isEmpty) {
+      Utils.showSnackBar(
+        text: LocaleKeys.errors_email_not_found_login_again.tr(),
+        isError: true,
+      );
+      return;
+    }
+
     final success = await ref.read(authProvider.notifier).verifyEmailOtp(
       email: _email,
       token: code,
     );
 
-    // Navigate to home on successful verification.
-    if (success && mounted) {
+    if (!mounted) return;
+
+    if (success) {
       NavigationService.offAllNamed(AppRoutes.home);
+    } else {
+      _pinController.clear();
+      _pinFocusNode.requestFocus();
     }
   }
 
@@ -167,6 +180,7 @@ class _EmailVerificationPageState extends ConsumerState<EmailVerificationPage> {
   /// 2. Restarts the countdown timer
   Future<void> _resendCode() async {
     await ref.read(authProvider.notifier).resendVerificationCode(_email);
+    if (!mounted) return;
     _startTimer();
   }
 
@@ -270,7 +284,7 @@ class _EmailVerificationPageState extends ConsumerState<EmailVerificationPage> {
             color: Colors.white,
           ),
         )
-            : const Text('Verify'),
+            : Text(LocaleKeys.auth_verify.tr()),
       ),
     );
   }

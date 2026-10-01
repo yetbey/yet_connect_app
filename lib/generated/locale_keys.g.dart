@@ -87,6 +87,8 @@ abstract class  LocaleKeys {
   static const auth_set_new_password = 'auth.set_new_password';
   static const auth_resend_code = 'auth.resend_code';
   static const auth_check_email_expired_ten_minutes = 'auth.check_email_expired_ten_minutes';
+  static const auth_forgot_password_subtitle = 'auth.forgot_password_subtitle';
+  static const auth_verify = 'auth.verify';
   static const auth = 'auth';
   static const validation_required_field = 'validation.required_field';
   static const validation_invalid_email = 'validation.invalid_email';

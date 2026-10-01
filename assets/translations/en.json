@@ -84,7 +84,9 @@
     "password_reset": "Password Reset",
     "set_new_password": "set your new password",
     "resend_code": "Resend code",
-    "check_email_expired_ten_minutes": "Check your email for the 8-digit verification code. The code expires in 10 minutes."
+    "check_email_expired_ten_minutes": "Check your email for the 8-digit verification code. The code expires in 10 minutes.",
+    "forgot_password_subtitle": "We'll send a verification code to your email.",
+    "verify": "Verify"
   },
   "validation": {
     "required_field": "{} cannot be empty.",

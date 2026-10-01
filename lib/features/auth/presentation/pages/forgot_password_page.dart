@@ -8,6 +8,9 @@ import 'package:yet_x_app/core/utils/validators.dart';
 import 'package:yet_x_app/features/auth/data/auth_repository.dart';
 import 'package:yet_x_app/shared/widgets/custom_auth_button.dart';
 import 'package:yet_x_app/shared/widgets/custom_text_form_field.dart';
+import 'package:easy_localization/easy_localization.dart';
+import 'package:yet_x_app/core/utils/formatters.dart';
+import 'package:yet_x_app/generated/locale_keys.g.dart';
 
 class ForgotPasswordPage extends ConsumerStatefulWidget {
   const ForgotPasswordPage({super.key});
@@ -38,15 +41,14 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
 
       await authRepo.sendPasswordResetOTP(email);
 
-      ErrorHandler.log('Password reset OTP sent', data: {'email': email});
+      ErrorHandler.log('Password reset OTP sent');
 
       if (mounted) {
         Utils.showSnackBar(
-          text: 'Doğrulama kodu email adresinize gönderildi',
+          text: LocaleKeys.infos_otp_sent_to_email.tr(),
           isError: false,
         );
 
-        // OTP girme sayfasına yönlendir
         NavigationService.toNamed(AppRoutes.verifyResetOtp, arguments: {'email': email});
       }
     } catch (e, stackTrace) {
@@ -101,7 +103,7 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Şifremi Unuttum',
+                        LocaleKeys.auth_forgot_password.tr(),
                         style: theme.textTheme.headlineLarge?.copyWith(
                           fontWeight: FontWeight.bold,
                           color: Colors.white,
@@ -109,7 +111,7 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
                       ),
                       const SizedBox(height: 12),
                       Text(
-                        'Email adresinize doğrulama kodu göndereceğiz.',
+                        LocaleKeys.auth_forgot_password_subtitle.tr(),
                         style: theme.textTheme.bodyMedium?.copyWith(
                           color: Colors.white70,
                         ),
@@ -125,17 +127,21 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
                   child: Column(
                     children: [
                       CustomTextFormField(
-                        hintText: 'Email',
+                        hintText: LocaleKeys.auth_email.tr(),
                         obscureText: false,
                         controller: _emailController,
                         validator: Validators.email,
                         keyboardType: TextInputType.emailAddress,
+                        textInputFormatter: [NoSpaceFormatter(), LowerCaseFormatter()],
+                        autofillHints: const [AutofillHints.email],
+                        textInputAction: TextInputAction.done,
+                        onFieldSubmitted: (_) => _handleSendOTP(),
                       ),
                       const SizedBox(height: 32),
 
                       // Send Code Button
                       CustomAuthButton(
-                        label: 'Kod Gönder',
+                        label: LocaleKeys.common_send.tr(),
                         isLoading: _isLoading,
                         onTap: _handleSendOTP,
                       ),
