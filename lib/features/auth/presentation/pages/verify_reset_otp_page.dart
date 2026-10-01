@@ -137,6 +137,8 @@ class _VerifyResetOtpPageState extends ConsumerState<VerifyResetOtpPage> {
       // Step 2: Update password using the authenticated session.
       await authRepo.updatePassword(_newPasswordController.text);
 
+      await authRepo.signOut();
+
       // Log success.
       ErrorHandler.log('Password reset successful');
 

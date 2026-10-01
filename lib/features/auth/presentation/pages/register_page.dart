@@ -205,7 +205,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
     final authNotifier = ref.read(authProvider.notifier);
 
     // Perform registration with all user data.
-    await authNotifier.register(
+    final ok = await authNotifier.register(
       email: email,
       password: _passwordController.text,
       fullName: _fullNameController.text.trim().replaceAll(RegExp(r'\s+'), ' '),
@@ -214,7 +214,8 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
     );
 
     // Navigate to email verification if registration was successful.
-    if (mounted && !ref.read(authProvider).isLoading) {
+    if (ok && mounted && !ref.read(authProvider).isLoggedIn) {
+      TextInput.finishAutofillContext();
       NavigationService.toNamed(
         AppRoutes.emailVerification,
         arguments: {'email': email},

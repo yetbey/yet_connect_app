@@ -43,6 +43,20 @@ class AuthNotifier extends Notifier<AuthState> {
 
   @override
   AuthState build() {
+    final sub = Supabase.instance.client.auth.onAuthStateChange.listen((data) {
+      final loggedIn = data.session != null;
+      final wasLoggedIn = state.isLoggedIn;
+
+      if (loggedIn && wasLoggedIn) {
+        state = state.copyWith(isLoggedIn: loggedIn);
+      }
+
+      if (!loggedIn && wasLoggedIn) {
+        ref.read(userProvider.notifier).clearUserData();
+        ref.read(chatListProvider.notifier).clearChats();
+      }
+    });
+
     final session = Supabase.instance.client.auth.currentSession;
     return AuthState(isLoading: false, isLoggedIn: session != null);
   }
@@ -52,7 +66,7 @@ class AuthNotifier extends Notifier<AuthState> {
   }
 
   /// Sign up
-  Future<void> register({
+  Future<bool> register({
     required String email,
     required String password,
     required String fullName,
@@ -62,10 +76,7 @@ class AuthNotifier extends Notifier<AuthState> {
   }) async {
     state = state.copyWith(isLoading: true);
 
-    ErrorHandler.log(LocaleKeys.infos_user_began_registration.tr(), data: {
-      'email': email,
-      'username': userName,
-    });
+    ErrorHandler.log(LocaleKeys.infos_user_began_registration.tr());
 
     try {
       final res = await _authRepository.signUp(
@@ -77,27 +88,32 @@ class AuthNotifier extends Notifier<AuthState> {
       );
 
       final user = res.user;
-      if (user != null) {
-        await ErrorHandler.setUserContext(user.id, email: user.email);
-        await AnalyticsHelper.setUserId(user.id);
-
-        if (res.session == null) {
-          ErrorHandler.log('Registration successful - email verification required');
-          Utils.showSnackBar(
-            text: LocaleKeys.auth_verify_email.tr(),
-            isError: false,
-          );
-        } else {
-          if (imageFile != null) {
-            ErrorHandler.log('Uploading profile image');
-            await _authRepository.uploadProfileImage(user.id, imageFile);
-          }
-
-          ErrorHandler.log('Registration completed successfully');
-          await AnalyticsHelper.logSignUp('email');
-          state = state.copyWith(isLoggedIn: true);
-        }
+      if (user == null) {
+        throw LocaleKeys.errors_unknown_error.tr();
       }
+
+      if (user.identities != null && user.identities!.isEmpty) {
+        throw LocaleKeys.errors_email_in_use.tr();
+      }
+
+      await ErrorHandler.setUserContext(user.id);
+      await AnalyticsHelper.setUserId(user.id);
+      await AnalyticsHelper.logSignUp('email');
+
+      if (res.session == null) {
+        ErrorHandler.log('Registration successful - email verification required');
+        Utils.showSnackBar(
+          text: LocaleKeys.auth_verify_email.tr(),
+          isError: false,
+        );
+      } else {
+        if (imageFile != null) {
+          await _authRepository.uploadProfileImage(user.id, imageFile);
+        }
+        state = state.copyWith(isLoggedIn: true);
+      }
+
+      return true;
     } catch (e, stackTrace) {
       ErrorHandler.logError(
         e,
@@ -105,15 +121,13 @@ class AuthNotifier extends Notifier<AuthState> {
         context: 'User Registration',
         severity: ErrorSeverity.medium,
         userAction: LocaleKeys.auth_try_create_account.tr(),
-        metadata: {
-          'email': email,
-          'username': userName,
-          'has_image': imageFile != null,
-        },
+        metadata: {'has_image': imageFile != null},
       );
 
       final errorMessage = ErrorHandler.getErrorMessage(e);
       Utils.showSnackBar(text: errorMessage, isError: true);
+
+      return false;
     } finally {
       state = state.copyWith(isLoading: false);
     }
@@ -136,7 +150,7 @@ class AuthNotifier extends Notifier<AuthState> {
 
       final user = res.user;
       if (user != null) {
-        await ErrorHandler.setUserContext(user.id, email: user.email);
+        await ErrorHandler.setUserContext(user.id);
         await AnalyticsHelper.setUserId(user.id);
 
         ErrorHandler.log('Login successful');
@@ -177,7 +191,6 @@ class AuthNotifier extends Notifier<AuthState> {
         context: 'User Login',
         severity: ErrorSeverity.medium,
         userAction: LocaleKeys.auth_try_to_sign_in.tr(),
-        metadata: {'email': email},
       );
 
       final errorMessage = ErrorHandler.getErrorMessage(e);
@@ -223,7 +236,7 @@ class AuthNotifier extends Notifier<AuthState> {
 
       final user = res.user;
       if (user != null) {
-        await ErrorHandler.setUserContext(user.id, email: user.email);
+        await ErrorHandler.setUserContext(user.id);
         await AnalyticsHelper.setUserId(user.id);
         ErrorHandler.log('Google sign-in successful');
         await AnalyticsHelper.logLogin('google');
@@ -306,14 +319,14 @@ class AuthNotifier extends Notifier<AuthState> {
     required String token,
 }) async {
     state = state.copyWith(isLoading: true);
-    ErrorHandler.log('Verify Otp for Email', data: {'email': email});
+    ErrorHandler.log('Verify Otp for Email');
 
     try {
       final res = await _authRepository.verifyOTP(email: email, token: token, type: OtpType.signup);
 
       final user = res.user;
       if (user != null) {
-        await ErrorHandler.setUserContext(user.id, email: user.email);
+        await ErrorHandler.setUserContext(user.id);
         await AnalyticsHelper.setUserId(user.id);
         
         ref.read(userProvider.notifier).fetchMyProfile();
