@@ -25,6 +25,7 @@ import 'package:yet_x_app/generated/locale_keys.g.dart';
 import 'package:yet_x_app/shared/widgets/custom_auth_button.dart';
 import 'package:yet_x_app/shared/widgets/custom_text_form_field.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:yet_x_app/core/utils/password_breach_checker.dart';
 
 /// Change Password page - Allows users to update their password
 ///
@@ -89,42 +90,6 @@ class _ChangePasswordPageState extends ConsumerState<ChangePasswordPage> {
   }
 
   // ============================================================================
-  // VALIDATORS
-  // ============================================================================
-
-  /// Validates the current password field.
-  ///
-  /// Checks:
-  /// - Non-empty value
-  ///
-  /// Returns an error message string if invalid, otherwise `null`.
-  String? _validateCurrentPassword(String? value) {
-    if (value == null || value.isEmpty) {
-      return LocaleKeys.auth_enter_current_password.tr();
-    }
-    return null;
-  }
-
-  /// Validates the confirm password field.
-  ///
-  /// Checks:
-  /// - Non-empty value
-  /// - Matches the new password value
-  ///
-  /// Returns an error message string if invalid, otherwise `null`.
-  String? _validateConfirmPassword(String? value) {
-    if (value == null || value.isEmpty) {
-      return LocaleKeys.auth_confirm_new_password.tr();
-    }
-
-    if (value != _newPasswordController.text) {
-      return LocaleKeys.auth_passwords_not_match.tr();
-    }
-
-    return null;
-  }
-
-  // ============================================================================
   // PASSWORD CHANGE LOGIC
   // ============================================================================
 
@@ -141,6 +106,15 @@ class _ChangePasswordPageState extends ConsumerState<ChangePasswordPage> {
     // If form is not valid, abort early.
     if (!_formKey.currentState!.validate()) return;
 
+    if (await PasswordBreachChecker.isBreached(_newPasswordController.text)) {
+      if (!mounted) return;
+      Utils.showSnackBar(
+        text: LocaleKeys.validation_password_breached.tr(),
+        isError: true,
+      );
+      return;
+    }
+
     // Set loading state.
     setState(() => _isLoading = true);
 
@@ -154,11 +128,10 @@ class _ChangePasswordPageState extends ConsumerState<ChangePasswordPage> {
       }
 
       // Step 1: Verify current password by attempting sign in.
-      // This is a security measure to ensure the user knows their current password.
       try {
         await supabase.auth.signInWithPassword(
           email: email,
-          password: _currentPasswordController.text.trim(),
+          password: _currentPasswordController.text,
         );
       } catch (e) {
         throw LocaleKeys.auth_current_password_incorrect.tr();
@@ -167,7 +140,7 @@ class _ChangePasswordPageState extends ConsumerState<ChangePasswordPage> {
       // Step 2: Update to new password.
       await supabase.auth.updateUser(
         UserAttributes(
-          password: _newPasswordController.text.trim(),
+          password: _newPasswordController.text,
         ),
       );
 
@@ -192,9 +165,7 @@ class _ChangePasswordPageState extends ConsumerState<ChangePasswordPage> {
       );
 
       // Determine appropriate error message.
-      final errorMessage = e.toString().contains('Current password is incorrect')
-          ? 'Current password is incorrect'
-          : ErrorHandler.getErrorMessage(e);
+      final errorMessage = e is String ? e : ErrorHandler.getErrorMessage(e);
 
       // Show error message to user.
       if (mounted) {
@@ -221,7 +192,9 @@ class _ChangePasswordPageState extends ConsumerState<ChangePasswordPage> {
           hintText: LocaleKeys.auth_current_password.tr(),
           obscureText: !isVisible,
           controller: _currentPasswordController,
-          validator: _validateCurrentPassword,
+          validator: Validators.loginPassword,
+          autofillHints: const [AutofillHints.password],
+          textInputAction: TextInputAction.next,
           prefixIcon: const Icon(
             Icons.lock_outline_rounded,
             color: Colors.white54,
@@ -252,7 +225,11 @@ class _ChangePasswordPageState extends ConsumerState<ChangePasswordPage> {
           hintText: LocaleKeys.auth_new_password.tr(),
           obscureText: !isVisible,
           controller: _newPasswordController,
-          validator: Validators.password,
+          validator: Validators.newPassword(
+            currentPassword: () => _currentPasswordController.text,
+          ),
+          autofillHints: const [AutofillHints.newPassword],
+          textInputAction: TextInputAction.next,
           prefixIcon: const Icon(
             Icons.lock_reset_rounded,
             color: Colors.white54,
@@ -283,7 +260,10 @@ class _ChangePasswordPageState extends ConsumerState<ChangePasswordPage> {
           hintText: LocaleKeys.auth_confirm_new_password.tr(),
           obscureText: !isVisible,
           controller: _confirmPasswordController,
-          validator: _validateConfirmPassword,
+          validator: Validators.confirmPassword(() => _newPasswordController.text),
+          autofillHints: const [AutofillHints.newPassword],
+          textInputAction: TextInputAction.done,
+          onFieldSubmitted: (_) => _handleChangePassword(),
           prefixIcon: const Icon(
             Icons.lock_clock_rounded,
             color: Colors.white54,

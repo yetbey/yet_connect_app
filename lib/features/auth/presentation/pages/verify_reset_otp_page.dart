@@ -93,48 +93,6 @@ class _VerifyResetOtpPageState extends ConsumerState<VerifyResetOtpPage> {
   }
 
   // ============================================================================
-  // VALIDATORS
-  // ============================================================================
-
-  /// Validates the OTP code field.
-  ///
-  /// Checks:
-  /// - Non-empty value
-  /// - Exactly 8 digits
-  ///
-  /// Returns an error message string if invalid, otherwise `null`.
-  String? _validateOtp(String? value) {
-    if (value == null || value.isEmpty) {
-      return 'Code is required';
-    }
-
-    if (value.length != 8) {
-      return 'Code must be 8 digits';
-    }
-
-    return null;
-  }
-
-  /// Validates the confirm password field.
-  ///
-  /// Checks:
-  /// - Non-empty value
-  /// - Matches the new password value
-  ///
-  /// Returns an error message string if invalid, otherwise `null`.
-  String? _validateConfirmPassword(String? value) {
-    if (value == null || value.isEmpty) {
-      return LocaleKeys.auth_confirm_current_password.tr();
-    }
-
-    if (value != _newPasswordController.text) {
-      return LocaleKeys.auth_passwords_not_match.tr();
-    }
-
-    return null;
-  }
-
-  // ============================================================================
   // PASSWORD RESET LOGIC
   // ============================================================================
 
@@ -158,7 +116,7 @@ class _VerifyResetOtpPageState extends ConsumerState<VerifyResetOtpPage> {
     if (await PasswordBreachChecker.isBreached(_newPasswordController.text)) {
       if (!mounted) return;
       Utils.showSnackBar(
-        text: 'Bu şifre veri ihlallerinde ortaya çıkmış. Lütfen başka bir şifre seç.',
+        text: LocaleKeys.validation_password_breached.tr(),
         isError: true,
       );
       return;
@@ -177,7 +135,7 @@ class _VerifyResetOtpPageState extends ConsumerState<VerifyResetOtpPage> {
       );
 
       // Step 2: Update password using the authenticated session.
-      await authRepo.updatePassword(_newPasswordController.text.trim());
+      await authRepo.updatePassword(_newPasswordController.text);
 
       // Log success.
       ErrorHandler.log('Password reset successful');
@@ -313,7 +271,9 @@ class _VerifyResetOtpPageState extends ConsumerState<VerifyResetOtpPage> {
         FilteringTextInputFormatter.digitsOnly,
         LengthLimitingTextInputFormatter(8),
       ],
-      validator: _validateOtp,
+      validator: Validators.otp(),
+      autofillHints: const [AutofillHints.oneTimeCode],
+      textInputAction: TextInputAction.next,
       prefixIcon: const Icon(
         Icons.pin_outlined,
         color: Colors.white54,
@@ -353,6 +313,8 @@ class _VerifyResetOtpPageState extends ConsumerState<VerifyResetOtpPage> {
           obscureText: !isVisible,
           controller: _newPasswordController,
           validator: Validators.password,
+          autofillHints: const [AutofillHints.newPassword],
+          textInputAction: TextInputAction.next,
           prefixIcon: const Icon(
             Icons.lock_outline_rounded,
             color: Colors.white54,
@@ -383,7 +345,10 @@ class _VerifyResetOtpPageState extends ConsumerState<VerifyResetOtpPage> {
           hintText: LocaleKeys.auth_confirm_new_password.tr(),
           obscureText: !isVisible,
           controller: _confirmPasswordController,
-          validator: _validateConfirmPassword,
+          validator: Validators.confirmPassword(() => _newPasswordController.text),
+          autofillHints: const [AutofillHints.newPassword],
+          textInputAction: TextInputAction.done,
+          onFieldSubmitted: (_) => _handleVerifyAndReset(),
           prefixIcon: const Icon(
             Icons.lock_clock_rounded,
             color: Colors.white54,
