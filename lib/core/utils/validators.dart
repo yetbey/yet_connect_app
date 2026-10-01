@@ -1,96 +1,187 @@
+import 'dart:convert';
+
 import 'package:easy_localization/easy_localization.dart';
 import 'package:yet_x_app/generated/locale_keys.g.dart';
 
 class Validators {
-  // Regex Tanımları
+  Validators._();
+
+  static const int passwordMinLength = 8;
+  static const int passwordMaxBytes = 72;
+  static const int usernameMinLength = 3;
+  static const int usernameMaxLength = 20;
+  static const int nameMinLength = 2;
+  static const int nameMaxLength = 50;
+  static const int otpLength = 8;
+
   static final RegExp _emailRegExp = RegExp(
-    r'^[a-zA-Z0-9.]+@[a-zA-Z0-9]+\.[a-zA-Z]+',
+    r"^[A-Za-z0-9.!#$%&'*+/=?^_`{|}~-]+@"
+    r'[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?'
+    r'(?:\.[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?)+$',
   );
+  static final RegExp _upper = RegExp(r'\p{Lu}', unicode: true);
+  static final RegExp _lower = RegExp(r'\p{Ll}', unicode: true);
+  static final RegExp _digit = RegExp(r'\p{Nd}', unicode: true);
+  static final RegExp _symbol = RegExp(r'[^\p{L}\p{N}\s]', unicode: true);
+  static final RegExp _nameRegExp =
+  RegExp(r"^\p{L}[\p{L} '’.\-]*$", unicode: true);
+  static final RegExp _usernameChars = RegExp(r'^[a-z0-9_]+$');
 
-  static final RegExp _passwordRegExp = RegExp(
-    r'^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[!@#\$&*~.]).{8,}$',
-  );
-  // Açıklama: En az 1 Büyük harf, 1 Küçük harf, 1 Rakam, 1 Özel karakter ve min 8 karakter.
+  static const Set<String> _reservedUsernames = {
+    'admin', 'administrator', 'root', 'support', 'help', 'moderator', 'mod',
+    'system', 'official', 'yet', 'yetconnect', 'yet_connect', 'api', 'www',
+    'null', 'undefined', 'settings', 'login', 'register', 'security',
+  };
 
-  static final RegExp _usernameRegExp = RegExp(
-    r'^[a-zA-Z0-9_]+$',
-  );
-  // Açıklama: Sadece harf, rakam ve alt çizgi. Boşluk yok.
+  static String _required(String label) =>
+      LocaleKeys.validation_required_field.tr(args: [label]);
 
-  // --- VALIDATORS ---
-
-  // 1. İsim Soyisim Doğrulama
   static String? name(String? value) {
-    if (value == null || value.trim().isEmpty) {
-      return LocaleKeys.validation_required_field.tr();
-    }
-    if (value.trim().length < 3) {
+    final v = (value ?? '').trim().replaceAll(RegExp(r'\s+'), ' ');
+    if (v.isEmpty) return _required(LocaleKeys.auth_full_name.tr());
+    if (v.runes.length < nameMinLength) {
       return LocaleKeys.validation_name_min_length.tr();
     }
-    // Sadece harf ve boşluk kontrolü
-    if (!RegExp(r'^[a-zA-ZğüşıöçĞÜŞİÖÇ ]+$').hasMatch(value)) {
-      return LocaleKeys.validation_invalid_name.tr();
+    if (v.runes.length > nameMaxLength) {
+      return LocaleKeys.validation_name_max_length.tr();
     }
+    if (!_nameRegExp.hasMatch(v)) return LocaleKeys.validation_invalid_name.tr();
     return null;
   }
 
-  // 2. Email Doğrulama
   static String? email(String? value) {
-    if (value == null || value.trim().isEmpty) {
-      return LocaleKeys.validation_email_required.tr();
+    final v = (value ?? '').trim();
+    if (v.isEmpty) return LocaleKeys.validation_email_required.tr();
+    final invalid = LocaleKeys.validation_invalid_email.tr();
+    if (v.length > 254 || !_emailRegExp.hasMatch(v)) return invalid;
+
+    final at = v.lastIndexOf('@');
+    final local = v.substring(0, at);
+    final domain = v.substring(at + 1);
+    if (local.length > 64 ||
+        local.startsWith('.') ||
+        local.endsWith('.') ||
+        local.contains('..')) {
+      return invalid;
     }
-    if (!_emailRegExp.hasMatch(value.trim())) {
-      return LocaleKeys.validation_invalid_email.tr();
+    final tld = domain.split('.').last;
+    if (tld.length < 2 || RegExp(r'^\d+$').hasMatch(tld)) return invalid;
+    return null;
+  }
+
+  static String? loginPassword(String? value) {
+    if (value == null || value.isEmpty) {
+      return LocaleKeys.validation_password_required.tr();
     }
     return null;
   }
 
-  // 3. Şifre Doğrulama (Güçlü Şifre)
   static String? password(String? value) {
     if (value == null || value.isEmpty) {
       return LocaleKeys.validation_password_required.tr();
     }
-    if (value.length < 8) {
+    if (value.length < passwordMinLength) {
       return LocaleKeys.validation_password_min_length.tr();
     }
-    if (!_passwordRegExp.hasMatch(value)) {
-      return 'Şifre en az 1 büyük harf, 1 rakam ve 1 özel karakter içermelidir.';
-      // Bunu LocaleKeys'e eklemelisin: validation_password_complexity
+    if (utf8.encode(value).length > passwordMaxBytes) {
+      return LocaleKeys.validation_password_max_length.tr();
     }
+    final ok = _upper.hasMatch(value) &&
+        _lower.hasMatch(value) &&
+        _digit.hasMatch(value) &&
+        _symbol.hasMatch(value);
+    if (!ok) return LocaleKeys.validation_password_complexity.tr();
     return null;
   }
 
-  // 4. Telefon Numarası Doğrulama
+  static String? Function(String?) newPassword({
+    required String Function() currentPassword,
+  }) {
+    return (value) {
+      final error = password(value);
+      if (error != null) return error;
+      if (value == currentPassword()) {
+        return LocaleKeys.validation_password_same_as_current.tr();
+      }
+      return null;
+    };
+  }
+
+  static String? Function(String?) confirmPassword(
+      String Function() original,
+      ) {
+    return (value) {
+      if (value == null || value.isEmpty) {
+        return LocaleKeys.auth_confirm_new_password.tr();
+      }
+      if (value != original()) return LocaleKeys.auth_passwords_not_match.tr();
+      return null;
+    };
+  }
+
+  static String? normalizePhone(String? value) {
+    if (value == null) return null;
+    var p = value.replaceAll(RegExp(r'[\s\-()]'), '');
+    if (p.isEmpty) return null;
+    if (p.startsWith('00')) p = '+${p.substring(2)}';
+
+    if (p.startsWith('+')) {
+      final digits = p.substring(1);
+      return RegExp(r'^[1-9]\d{7,14}$').hasMatch(digits) ? '+$digits' : null;
+    }
+    if (!RegExp(r'^\d+$').hasMatch(p)) return null;
+
+    if (p.startsWith('90') && p.length == 12) {
+      p = p.substring(2);
+    } else if (p.startsWith('0') && p.length == 11) {
+      p = p.substring(1);
+    }
+    return RegExp(r'^5\d{9}$').hasMatch(p) ? '+90$p' : null;
+  }
+
   static String? phone(String? value) {
     if (value == null || value.trim().isEmpty) {
       return LocaleKeys.validation_phone_required.tr();
     }
-    // Boşlukları temizle
-    final String cleanPhone = value.replaceAll(' ', '');
-
-    // Sadece rakam içerdiğinden emin ol
-    if (!RegExp(r'^[0-9]+$').hasMatch(cleanPhone)) {
-      return LocaleKeys.validation_invalid_phone.tr();
-    }
-
-    // Uzunluk kontrolü (Ülkeye göre değişir ama genelde 10-11 hanedir)
-    if (cleanPhone.length < 10 || cleanPhone.length > 13) {
+    if (normalizePhone(value) == null) {
       return LocaleKeys.validation_invalid_phone.tr();
     }
     return null;
   }
 
-  // 5. Kullanıcı Adı Doğrulama
   static String? username(String? value) {
-    if (value == null || value.trim().isEmpty) {
-      return '${LocaleKeys.auth_username.tr()} ${LocaleKeys.validation_required.tr()}';
+    final v = value ?? '';
+    if (v.trim().isEmpty) return LocaleKeys.validation_username_required.tr();
+    if (v.length < usernameMinLength) {
+      return LocaleKeys.validation_username_min_length.tr();
     }
-    if (value.length < 3) {
-      return 'Kullanıcı adı en az 3 karakter olmalıdır.';
+    if (v.length > usernameMaxLength) {
+      return LocaleKeys.validation_username_max_length.tr();
     }
-    if (!_usernameRegExp.hasMatch(value)) {
-      return 'Kullanıcı adı sadece harf, rakam ve alt çizgi (_) içerebilir.';
+    if (!_usernameChars.hasMatch(v)) {
+      return LocaleKeys.validation_username_invalid_chars.tr();
+    }
+    if (!RegExp(r'^[a-z]').hasMatch(v)) {
+      return LocaleKeys.validation_username_must_start_with_letter.tr();
+    }
+    if (v.endsWith('_') || v.contains('__')) {
+      return LocaleKeys.validation_username_invalid_underscore.tr();
+    }
+    if (_reservedUsernames.contains(v)) {
+      return LocaleKeys.validation_username_reserved.tr();
     }
     return null;
+  }
+
+  static String? Function(String?) otp({int length = otpLength}) {
+    return (value) {
+      final v = (value ?? '').trim();
+      if (v.isEmpty) return LocaleKeys.validation_otp_required.tr();
+      if (!RegExp(r'^\d+$').hasMatch(v) || v.length != length) {
+        return LocaleKeys.validation_otp_invalid_length
+            .tr(args: [length.toString()]);
+      }
+      return null;
+    };
   }
 }

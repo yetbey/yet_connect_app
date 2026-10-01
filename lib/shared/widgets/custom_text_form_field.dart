@@ -16,6 +16,14 @@ class CustomTextFormField extends StatelessWidget {
   final void Function(String)? onChanged;
   final Key? fieldKey;
 
+  final Iterable<String>? autofillHints;
+  final TextInputAction? textInputAction;
+  final void Function(String)? onFieldSubmitted;
+  final FocusNode? focusNode;
+  final bool enabled;
+  final bool? autocorrect;
+  final bool? enableSuggestions;
+
   const CustomTextFormField({
     super.key,
     required this.hintText,
@@ -30,7 +38,14 @@ class CustomTextFormField extends StatelessWidget {
     this.textInputFormatter,
     this.autovalidateMode,
     this.onChanged,
-    this.fieldKey
+    this.fieldKey,
+    this.autofillHints,
+    this.textInputAction,
+    this.onFieldSubmitted,
+    this.focusNode,
+    this.enabled = true,
+    this.autocorrect,
+    this.enableSuggestions,
   });
 
   @override
@@ -41,8 +56,15 @@ class CustomTextFormField extends StatelessWidget {
       key: fieldKey,
       onChanged: onChanged,
       controller: controller,
+      focusNode: focusNode,
+      enabled: enabled,
       obscureText: obscureText,
+      autocorrect: autocorrect ?? !obscureText,
+      enableSuggestions: enableSuggestions ?? !obscureText,
       keyboardType: keyboardType,
+      textInputAction: textInputAction,
+      onFieldSubmitted: onFieldSubmitted,
+      autofillHints: autofillHints,
       validator: validator,
       textCapitalization: textCapitalization,
       maxLines: maxLines,

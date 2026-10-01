@@ -2,7 +2,7 @@
 
 // ignore_for_file: constant_identifier_names
 
-abstract class LocaleKeys {
+abstract class  LocaleKeys {
   static const common_app_name = 'common.app_name';
   static const common_ok = 'common.ok';
   static const common_cancel = 'common.cancel';
@@ -90,17 +90,29 @@ abstract class LocaleKeys {
   static const auth = 'auth';
   static const validation_required_field = 'validation.required_field';
   static const validation_invalid_email = 'validation.invalid_email';
-  static const validation_password_min_length =
-      'validation.password_min_length';
+  static const validation_password_min_length = 'validation.password_min_length';
   static const validation_password_required = 'validation.password_required';
   static const validation_email_required = 'validation.email_required';
   static const validation_phone_required = 'validation.phone_required';
   static const validation_phone_invalid = 'validation.phone_invalid';
   static const validation_username_required = 'validation.username_required';
+  static const validation_validation_required = 'validation.validation_required';
   static const validation_name_min_length = 'validation.name_min_length';
+  static const validation_name_max_length = 'validation.name_max_length';
   static const validation_invalid_name = 'validation.invalid_name';
   static const validation_invalid_phone = 'validation.invalid_phone';
-  static const validation_required = 'validation.required';
+  static const validation_password_max_length = 'validation.password_max_length';
+  static const validation_password_complexity = 'validation.password_complexity';
+  static const validation_password_same_as_current = 'validation.password_same_as_current';
+  static const validation_password_breached = 'validation.password_breached';
+  static const validation_username_min_length = 'validation.username_min_length';
+  static const validation_username_max_length = 'validation.username_max_length';
+  static const validation_username_invalid_chars = 'validation.username_invalid_chars';
+  static const validation_username_must_start_with_letter = 'validation.username_must_start_with_letter';
+  static const validation_username_invalid_underscore = 'validation.username_invalid_underscore';
+  static const validation_username_reserved = 'validation.username_reserved';
+  static const validation_otp_required = 'validation.otp_required';
+  static const validation_otp_invalid_length = 'validation.otp_invalid_length';
   static const validation = 'validation';
   static const navigation_home = 'navigation.home';
   static const navigation_feed = 'navigation.feed';
@@ -182,13 +194,10 @@ abstract class LocaleKeys {
   static const chat = 'chat';
   static const notifications_title = 'notifications.title';
   static const notifications_mark_all_read = 'notifications.mark_all_read';
-  static const notifications_no_notifications =
-      'notifications.no_notifications';
+  static const notifications_no_notifications = 'notifications.no_notifications';
   static const notifications_liked_your_post = 'notifications.liked_your_post';
-  static const notifications_commented_on_post =
-      'notifications.commented_on_post';
-  static const notifications_started_following =
-      'notifications.started_following';
+  static const notifications_commented_on_post = 'notifications.commented_on_post';
+  static const notifications_started_following = 'notifications.started_following';
   static const notifications = 'notifications';
   static const settings_title = 'settings.title';
   static const settings_appearance = 'settings.appearance';
@@ -233,10 +242,10 @@ abstract class LocaleKeys {
   static const errors_password_reset_otp_send_fail = 'errors.password_reset_otp_send_fail';
   static const errors_password_update_fail = 'errors.password_update_fail';
   static const errors_delete_account_fail = 'errors.delete_account_fail';
-  static const errors_email_not_verified_new_code = 'erorrs.email_not_verified_new_code';
+  static const errors_email_not_verified_new_code = 'errors.email_not_verified_new_code';
   static const errors = 'errors';
-  static const infos_user_logged_out = 'infos_user_logged_out';
   static const infos_database_clear = 'infos.database_clear';
+  static const infos_user_logged_out = 'infos.user_logged_out';
   static const infos_password_reset_otp_sent = 'infos.password_reset_otp_sent';
   static const infos_password_reset_otp_verifies = 'infos.password_reset_otp_verifies';
   static const infos_password_updated = 'infos.password_updated';
@@ -245,4 +254,5 @@ abstract class LocaleKeys {
   static const infos_otp_sent_to_email = 'infos.otp_sent_to_email';
   static const infos_add_some_content = 'infos.add_some_content';
   static const infos = 'infos';
+
 }
