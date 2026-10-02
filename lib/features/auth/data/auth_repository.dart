@@ -7,6 +7,8 @@ import 'package:yet_x_app/core/services/database_service.dart';
 import 'package:yet_x_app/core/utils/logger_service.dart';
 import 'package:yet_x_app/generated/locale_keys.g.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:yet_x_app/core/services/fcm_service.dart';
+import 'package:yet_x_app/core/utils/validators.dart';
 
 
 enum AccountStatus { active, deleted, unknown }
@@ -22,15 +24,14 @@ class AuthRepository {
   /// Username token
   Future<bool> isUsernameTaken(String username) async {
     try {
-      // Check if a the user exists in the Profiles table
-      final data = await _supabase
-          .from(profilesTable.tableName)
-          .select(profilesTable.username)
-          .eq(profilesTable.username, username)
-          .maybeSingle();
-
-      return data != null;
+      final available = await _supabase.rpc(
+        'is_username_available',
+        params: {'p_username': username},
+      );
+      return available == false;
     } catch (e) {
+      LogService.e('Username kontrol hatası', e);
+      // Son karar veritabanındaki benzersiz indekste verilir.
       return false;
     }
   }
@@ -121,42 +122,43 @@ class AuthRepository {
 
   /// Benzersiz username oluştur
   Future<String> _generateUniqueUsername(User user) async {
-    // Email'den veya display name'den base username al
-    String baseUsername = user.userMetadata?['name']?.toString().toLowerCase().replaceAll(' ', '_')
-        ?? user.email?.split('@')[0]
-        ?? 'user';
-
-    // Türkçe karakterleri temizle
-    baseUsername = baseUsername
+    var base = (user.userMetadata?['name']?.toString() ??
+        user.email?.split('@').first ??
+        '')
+        .replaceAll('İ', 'i')
+        .toLowerCase()
         .replaceAll('ı', 'i')
         .replaceAll('ğ', 'g')
         .replaceAll('ü', 'u')
         .replaceAll('ş', 's')
         .replaceAll('ö', 'o')
         .replaceAll('ç', 'c')
-        .replaceAll(RegExp(r'[^a-z0-9_]'), '');
+        .replaceAll(RegExp(r'\s+'), '_')
+        .replaceAll(RegExp(r'[^a-z0-9_]'), '')
+        .replaceAll(RegExp(r'_+'), '_')
+        .replaceAll(RegExp(r'^_+|_+$'), '');
 
-    String username = baseUsername;
-    int counter = 1;
-
-    // Username benzersiz olana kadar dene
-    while (await isUsernameTaken(username)) {
-      username = '${baseUsername}_$counter';
-      counter++;
+    if (!RegExp(r'^[a-z]').hasMatch(base)) base = 'user$base';
+    if (base.length > 14) {
+      base = base.substring(0, 14).replaceAll(RegExp(r'_+$'), '');
     }
+    if (base.length < 3) base = '${base}_user';
 
-    return username;
+    var candidate = base;
+    var i = 1;
+    while (Validators.username(candidate) != null ||
+        await isUsernameTaken(candidate)) {
+      candidate = '${base}_$i';
+      if (++i > 9999) throw 'username_generation_failed';
+    }
+    return candidate;
   }
 
 
 
   /// Sign out
   Future<void> signOut() async {
-    try {
-      await _supabase.rpc('clear_my_fcm_token');
-    } catch (e) {
-      LogService.e('FCM Token temizlenemedş', e);
-    }
+    await FCMService.instance.unregisterToken();
 
     try {
       await _supabase.auth.signOut();

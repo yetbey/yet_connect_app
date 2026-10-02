@@ -69,10 +69,22 @@ class UserRepository {
         .eq('id', userId)
         .maybeSingle();
 
-    final userMap = Map<String, dynamic>.from(data!);
+    if (data == null) {
+      throw StateError('Profile not found: $userId');
+    }
+
+    final userMap = Map<String, dynamic>.from(data);
 
     if (_supabase.auth.currentUser?.id == userId) {
       userMap['email'] = _supabase.auth.currentUser?.email ?? '';
+
+      // Telefon artık herkese açık profilde değil, sadece sahibine açık tabloda.
+      final priv = await _supabase
+          .from('user_private')
+          .select('phone_number')
+          .eq('id', userId)
+          .maybeSingle();
+      userMap['phone_number'] = priv?['phone_number'];
     }
 
     return UserModel.fromJson(userMap);

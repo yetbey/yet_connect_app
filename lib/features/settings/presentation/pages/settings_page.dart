@@ -79,15 +79,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     );
 
     if (confirmed == true && mounted) {
-      final authNotifier = ref.read(authProvider.notifier);
-      final userNotifier = ref.read(userProvider.notifier);
-
-      await authNotifier.signOut();
-      userNotifier.clearUserData();
-
-      if (mounted) {
-        NavigationService.toNamed(AppRoutes.start);
-      }
+      await ref.read(authProvider.notifier).signOut();
     }
   }
 
@@ -308,16 +300,22 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
   // --- YARDIMCI WIDGET'LAR ---
 
   Widget _buildCard(BuildContext context, {required List<Widget> children}) {
+    final theme = Theme.of(context);
+
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
+        color: theme.colorScheme.surface,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: Theme.of(context).colorScheme.outline.withAlpha(26),
+          color: theme.colorScheme.outline.withAlpha(26),
         ),
       ),
-      child: Column(children: children),
+      child: Material(
+        type: MaterialType.transparency,
+        child: Column(children: children),
+      ),
     );
   }
 
@@ -451,36 +449,39 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
             ? Border.all(color: Theme.of(context).colorScheme.primary, width: 2)
             : null,
       ),
-      child: ListTile(
-        leading: Container(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: isSelected
-                ? Theme.of(context).colorScheme.primary
-                : Theme.of(context).colorScheme.surfaceContainerHighest,
-            shape: BoxShape.circle,
+      child: Material(
+        type: MaterialType.transparency,
+        child: ListTile(
+          leading: Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: isSelected
+                  ? Theme.of(context).colorScheme.primary
+                  : Theme.of(context).colorScheme.surfaceContainerHighest,
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              icon,
+              color: isSelected
+                  ? Theme.of(context).colorScheme.onPrimary
+                  : Theme.of(context).colorScheme.onSurface,
+              size: 24,
+            ),
           ),
-          child: Icon(
-            icon,
-            color: isSelected
-                ? Theme.of(context).colorScheme.onPrimary
-                : Theme.of(context).colorScheme.onSurface,
-            size: 24,
+          title: Text(
+            label,
+            style: TextStyle(
+              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+            ),
           ),
+          trailing: isSelected
+              ? Icon(Icons.check_circle, color: Theme.of(context).colorScheme.primary)
+              : null,
+          onTap: () {
+            notifier.changeThemeMode(mode);
+            Navigator.pop(context);
+          },
         ),
-        title: Text(
-          label,
-          style: TextStyle(
-            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-          ),
-        ),
-        trailing: isSelected
-            ? Icon(Icons.check_circle, color: Theme.of(context).colorScheme.primary)
-            : null,
-        onTap: () {
-          notifier.changeThemeMode(mode);
-          Navigator.pop(context);
-        },
       ),
     );
   }
@@ -681,33 +682,36 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
             ? Border.all(color: Theme.of(context).colorScheme.primary, width: 2)
             : null,
       ),
-      child: ListTile(
-        leading: CircleAvatar(
-          backgroundColor: colorScheme.primary,
-          child: isSelected
-              ? Icon(Icons.check, color: colorScheme.onPrimary, size: 24)
-              : null,
-        ),
-        title: Text(
-          schemeName,
-          style: TextStyle(
-            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+      child: Material(
+        type: MaterialType.transparency,
+        child: ListTile(
+          leading: CircleAvatar(
+            backgroundColor: colorScheme.primary,
+            child: isSelected
+                ? Icon(Icons.check, color: colorScheme.onPrimary, size: 24)
+                : null,
           ),
+          title: Text(
+            schemeName,
+            style: TextStyle(
+              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+            ),
+          ),
+          trailing: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _ColorCircle(color: colorScheme.primary),
+              const SizedBox(width: 4),
+              _ColorCircle(color: colorScheme.secondary),
+              const SizedBox(width: 4),
+              _ColorCircle(color: colorScheme.tertiary),
+            ],
+          ),
+          onTap: () {
+            notifier.changeColorScheme(schemeName);
+            Navigator.pop(context);
+          },
         ),
-        trailing: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            _ColorCircle(color: colorScheme.primary),
-            const SizedBox(width: 4),
-            _ColorCircle(color: colorScheme.secondary),
-            const SizedBox(width: 4),
-            _ColorCircle(color: colorScheme.tertiary),
-          ],
-        ),
-        onTap: () {
-          notifier.changeColorScheme(schemeName);
-          Navigator.pop(context);
-        },
       ),
     );
   }

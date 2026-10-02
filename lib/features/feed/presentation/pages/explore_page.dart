@@ -536,13 +536,12 @@ class _ModernCategoryPills extends StatefulWidget {
 }
 
 class _ModernCategoryPillsState extends State<_ModernCategoryPills> {
-  late ScrollController _scrollController;
+  final ScrollController _scrollController = ScrollController();
   final Map<int, GlobalKey> _itemKeys = {};
 
   @override
   void initState() {
     super.initState();
-    _scrollController = ScrollController();
     for (int i = 0; i < widget.categories.length; i++) {
       _itemKeys[i] = GlobalKey();
     }

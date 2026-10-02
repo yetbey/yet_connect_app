@@ -31,7 +31,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage>
   UserModel? _otherUserProfile;
   bool _isLoadingOtherUser = false;
   late TabController _tabController;
-  late ScrollController _scrollController;
+  final ScrollController _scrollController = ScrollController();
   static const double _cardSpacing = 12.0;
 
   @override

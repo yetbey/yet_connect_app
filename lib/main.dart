@@ -55,7 +55,7 @@ void main() async {
           ),
         );
 
-        await FCMService.instance.initialize();
+        unawaited(FCMService.instance.initialize());
 
         await EasyLocalization.ensureInitialized();
 

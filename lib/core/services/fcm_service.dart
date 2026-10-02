@@ -4,7 +4,8 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:yet_x_app/core/constants/supabase_tables.dart';
 import 'package:yet_x_app/core/utils/logger_service.dart';
-
+import 'dart:async';
+import 'dart:io' show Platform;
 import '../../config/routes/app_routes.dart';
 import '../../features/feed/data/models/post_model.dart';
 import 'navigation_service.dart';
@@ -25,6 +26,8 @@ class FCMService {
   FlutterLocalNotificationsPlugin();
 
   bool _initialized = false;
+  StreamSubscription<String>? _tokenRefreshSub;
+  String? _registeredToken;
 
   /// FCM servisini başlat
   Future<void> initialize() async {
@@ -116,35 +119,76 @@ class FCMService {
   /// FCM Token yönetimi
   Future<void> _handleFCMToken() async {
     try {
-      final token = await _fcm.getToken();
-      if (token != null) {
-        await _saveFCMToken(token);
-        LogService.i('📱 FCM Token: ${token.substring(0, 20)}...');
-      }
-
-      // Token yenilenme dinleyicisi
-      _fcm.onTokenRefresh.listen(_saveFCMToken);
+      await syncToken();
+      // Token yenilenme dinleyicisi (bir kez kurulur)
+      _tokenRefreshSub ??= _fcm.onTokenRefresh.listen(_registerToken);
     } catch (e) {
       LogService.e('❌ FCM token hatası: $e');
     }
   }
 
-  /// Token'ı Supabase'e kaydet
-  Future<void> _saveFCMToken(String token) async {
+  Future<void> syncToken({int retries = 3}) async {
+    for (var attempt = 0; attempt < retries; attempt++) {
+      try {
+        final token = await _fcm.getToken();
+        if (token != null) {
+          await _registerToken(token);
+          return;
+        }
+      } catch (e) {
+        LogService.w('⚠️ FCM token alınamadı (deneme ${attempt + 1}/$retries): $e');
+      }
+      await Future.delayed(Duration(seconds: 2 << attempt)); // 2s, 4s, 8s
+    }
+    LogService.e('❌ FCM token senkronu başarısız oldu');
+  }
+
+  Future<void> _registerToken(String token) async {
+    final client = Supabase.instance.client;
+    if (client.auth.currentUser == null) return;
+
     try {
-      final userId = Supabase.instance.client.auth.currentUser?.id;
-      if (userId == null) return;
-
-      await Supabase.instance.client
-          .from('profiles')
-          .update({'fcm_token': token})
-          .eq('id', userId);
-
+      await client.rpc('register_device_token', params: {
+        'p_token': token,
+        'p_platform': Platform.isIOS ? 'ios' : 'android',
+      });
+      _registeredToken = token;
       LogService.i('✅ FCM token kaydedildi');
     } catch (e) {
       LogService.e('❌ Token kaydetme hatası: $e');
     }
   }
+
+  /// Çıkıştan ÖNCE çağır (oturum hâlâ açıkken).
+  Future<void> unregisterToken() async {
+    final client = Supabase.instance.client;
+
+    // Firebase'e ulaşılamasa bile en son kaydettiğimiz token'ı kullan.
+    String? token = _registeredToken;
+    try {
+      token = await _fcm.getToken() ?? token;
+    } catch (e) {
+      LogService.w('⚠️ Token alınamadı, kayıtlı olan kullanılacak: $e');
+    }
+
+    if (token != null && client.auth.currentUser != null) {
+      try {
+        await client.rpc('unregister_device_token', params: {'p_token': token});
+        LogService.i('🗑️ Token sunucudan silindi');
+      } catch (e) {
+        LogService.e('❌ Token sunucudan silinemedi: $e');
+      }
+    }
+    _registeredToken = null;
+
+    // Cihazda yeni token üretmek önemli ama kritik değil.
+    try {
+      await _fcm.deleteToken();
+    } catch (e) {
+      LogService.w('⚠️ Cihaz token\'ı silinemedi (önemli değil): $e');
+    }
+  }
+
 
   /// Foreground mesajları işle
   Future<void> _handleForegroundMessage(RemoteMessage message) async {
@@ -232,12 +276,5 @@ class FCMService {
   }
 
   /// Token'ı temizle (Logout)
-  Future<void> clearToken() async {
-    try {
-      await _fcm.deleteToken();
-      LogService.i('🗑️ FCM token silindi');
-    } catch (e) {
-      LogService.e('❌ Token silme hatası: $e');
-    }
-  }
+  Future<void> clearToken() => unregisterToken();
 }

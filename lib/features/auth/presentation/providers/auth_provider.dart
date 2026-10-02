@@ -12,6 +12,7 @@ import 'package:yet_x_app/core/utils/error_handler.dart';
 import 'package:yet_x_app/core/utils/utils.dart';
 import 'package:yet_x_app/generated/locale_keys.g.dart';
 import 'package:yet_x_app/core/utils/analytics_helper.dart';
+import 'package:yet_x_app/core/services/fcm_service.dart';
 
 /// ---> Verified and Approved <--- \\\
 
@@ -47,8 +48,12 @@ class AuthNotifier extends Notifier<AuthState> {
       final loggedIn = data.session != null;
       final wasLoggedIn = state.isLoggedIn;
 
-      if (loggedIn && wasLoggedIn) {
+      if (loggedIn != wasLoggedIn) {
         state = state.copyWith(isLoggedIn: loggedIn);
+      }
+
+      if (loggedIn && !wasLoggedIn) {
+        FCMService.instance.syncToken();
       }
 
       if (!loggedIn && wasLoggedIn) {
@@ -141,7 +146,7 @@ class AuthNotifier extends Notifier<AuthState> {
   }) async {
     state = state.copyWith(isLoading: true);
 
-    ErrorHandler.log('User attempting login', data: {'email': email});
+    ErrorHandler.log('User attempting login');
 
     try {
       final res = await _authRepository.signIn(
@@ -276,9 +281,9 @@ class AuthNotifier extends Notifier<AuthState> {
       await AnalyticsHelper.logLogout();
 
       state = state.copyWith(isLoggedIn: false);
-
       ErrorHandler.log('Logout successful');
-      Utils.showSnackBar(text: LocaleKeys.auth_logout.tr(), isError: false);
+
+      NavigationService.offAllNamed(AppRoutes.start);
     } catch (e, stackTrace) {
       ErrorHandler.logError(
         e,
@@ -288,8 +293,12 @@ class AuthNotifier extends Notifier<AuthState> {
         userAction: LocaleKeys.auth_try_log_out.tr(),
       );
 
-      final errorMessage = ErrorHandler.getErrorMessage(e);
-      Utils.showSnackBar(text: errorMessage, isError: true);
+      try {
+        Utils.showSnackBar(
+          text: ErrorHandler.getErrorMessage(e),
+          isError: true,
+        );
+      } catch (_) {}
     }
   }
 
